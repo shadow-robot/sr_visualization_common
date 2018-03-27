@@ -1,0 +1,24 @@
+<package>
+  <name>sr_visualisation_common</name>
+  <description>This stack contains the different gui plugins used with the shadow robot stacks.</description>
+  <maintainer email="software@shadowrobot.com">Shadow Robot's software team</maintainer>
+
+  <license>GPL</license>
+  <license>BSD</license>
+
+  <url type="website">http://ros.org/wiki/sr_visualization</url>
+  <url type="repository">https://github.com/shadow-robot/sr_visualisation_common</url>
+  <url type="bugtracker">https://github.com/shadow-robot/sr_visualisation_common/issues</url>
+
+  <author email="software@shadowrobot.com">The Shadow Robot software team. </author>
+
+  
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <run_depend>sr_gui_joint_slider</run_depend>
+  <run_depend>sr_visualization_icons</run_depend>
+
+  <export>
+    <metapackage />
+  </export>
+</package>
