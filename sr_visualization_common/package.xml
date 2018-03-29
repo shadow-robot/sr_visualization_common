@@ -16,7 +16,7 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <run_depend>sr_gui_joint_slider</run_depend>
-  <run_depend>sr_visualization_icons</run_depend>
+  <run_depend>sr_visualization_common_icons</run_depend>
 
   <export>
     <metapackage />
