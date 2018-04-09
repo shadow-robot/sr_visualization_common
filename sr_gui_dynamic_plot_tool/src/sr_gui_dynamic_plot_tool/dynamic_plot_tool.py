@@ -29,6 +29,7 @@ class SrGuiDynamicPlotTool(Plugin):
         super(SrGuiDynamicPlotTool, self).__init__(context)
         self.setObjectName('SrGuiDynamicPlotTool')
         self._widget = QWidget()
+        self._script_name = ""
 
         ui_file = os.path.join(rospkg.RosPack().get_path(
             'sr_gui_dynamic_plot_tool'), 'uis', 'SrGuiDynamicPlotTool.ui')
@@ -60,7 +61,9 @@ class SrGuiDynamicPlotTool(Plugin):
         user_entry_class = getattr(module, 'SrAddInterfaceEntries')
         self._user_entry_class = user_entry_class()
         self._widget_choices = self._user_entry_class.define_interface_setting()
-        self.add_widgets(self._widget_choices)
+        if script_name != self._script_name:
+            self._script_name = script_name
+            self.add_widgets(self._widget_choices)
 
     def add_widgets(self, widget_choices):
         """
