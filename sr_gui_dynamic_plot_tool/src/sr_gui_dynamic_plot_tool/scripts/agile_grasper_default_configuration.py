@@ -125,8 +125,8 @@ class SrAddInterfaceEntries():
         t.start()
 
     def _start_rqt(self):
-        xml_dir = os.path.expanduser("~/projects/shadow_robot/base_deps/src/sr_visualization_common/"
-                                     "sr_gui_dynamic_plot_tool/xml_configurations")
+        package_dir = rospkg.RosPack().get_path("sr_gui_dynamic_plot_tool")
+        xml_dir = package_dir + "/xml_configurations"
 
         subprocess.call("rosrun rqt_multiplot rqt_multiplot --multiplot-config {}/{}".format(xml_dir,
                         self.xml_cfg_name), shell=True)

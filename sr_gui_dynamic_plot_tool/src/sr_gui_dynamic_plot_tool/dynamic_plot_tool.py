@@ -30,6 +30,7 @@ class SrGuiDynamicPlotTool(Plugin):
         self.setObjectName('SrGuiDynamicPlotTool')
         self._widget = QWidget()
         self._script_name = ""
+        self._rospack = rospkg.RosPack()
 
         ui_file = os.path.join(rospkg.RosPack().get_path(
             'sr_gui_dynamic_plot_tool'), 'uis', 'SrGuiDynamicPlotTool.ui')
@@ -41,8 +42,8 @@ class SrGuiDynamicPlotTool(Plugin):
 
         self.layout = self._widget.layout()
 
-        self.script_dir = os.path.expanduser("~/projects/shadow_robot/base_deps/src/sr_visualization_common/"
-                                             "sr_gui_dynamic_plot_tool/src/sr_gui_dynamic_plot_tool/scripts")
+        package_dir = rospkg.RosPack().get_path("sr_gui_dynamic_plot_tool")
+        self.script_dir = package_dir + "/src/sr_gui_dynamic_plot_tool/scripts"
         self.list_scripts = []
         for script in os.listdir(self.script_dir):
             if script.endswith('.py'):
@@ -236,11 +237,20 @@ class AddWidget(QWidget):
                 selection_button_joint = QtWidgets.QToolButton()
                 selection_button_joint.setFixedSize(40, 30)
                 selection_button_joint.setCheckable(True)
-                selection_button_joint.setText(str(joint[3:]))
-                selection_button_joint.setObjectName(str(joint[3:]))
-                selection_button_joint.released.connect(self._joint_button_released)
-                self.selection_button_joint.append(selection_button_joint)
-                sublayout_joint.addWidget(selection_button_joint)
+                if joint[4:] == "FJ1":
+                    selection_button_joint.setText(str(joint[3:6])+"0")
+                    selection_button_joint.setObjectName(str(joint[3:6])+"0")
+                    selection_button_joint.released.connect(self._joint_button_released)
+                    self.selection_button_joint.append(selection_button_joint)
+                    sublayout_joint.addWidget(selection_button_joint)
+                elif joint[4:] == "FJ2":
+                    pass
+                else:
+                    selection_button_joint.setText(str(joint[3:]))
+                    selection_button_joint.setObjectName(str(joint[3:]))
+                    selection_button_joint.released.connect(self._joint_button_released)
+                    self.selection_button_joint.append(selection_button_joint)
+                    sublayout_joint.addWidget(selection_button_joint)
             subframe_joint.setLayout(sublayout_joint)
             self.plot_interface_layout.addWidget(subframe_joint)
 
@@ -294,8 +304,8 @@ class CreatePlotConfigurations():
         self._plots = []
         self._plot_rows = []
         self._plot_columns = []
-        self._xml_config_dir = os.path.expanduser("~/projects/shadow_robot/base_deps/src/sr_visualization_common/"
-                                                  "sr_gui_dynamic_plot_tool/xml_configurations")
+        package_dir = rospkg.RosPack().get_path("sr_gui_dynamic_plot_tool")
+        self._xml_config_dir = package_dir + "/xml_configurations"
         self._base_configuration_xml = xmlTool.parse('{}/empty_configuration.xml'.format(self._xml_config_dir))
         self._xml_root = self._base_configuration_xml.getroot()
         self._generate_xml(rows, columns, configuration_name)
@@ -343,8 +353,8 @@ class Plot():
         self._row = row
         self._column = column
         self._configuration_name = configuration_name
-        self._xml_config_dir = os.path.expanduser("~/projects/shadow_robot/base_deps/src/sr_visualization_common/"
-                                                  "sr_gui_dynamic_plot_tool/xml_configurations")
+        package_dir = rospkg.RosPack().get_path("sr_gui_dynamic_plot_tool")
+        self._xml_config_dir = package_dir + "/xml_configurations"
 
     def set_title_and_frame_rate(self, plot_title, frame_rate):
         """

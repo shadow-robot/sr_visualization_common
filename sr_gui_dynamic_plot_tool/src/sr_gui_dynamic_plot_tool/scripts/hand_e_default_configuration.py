@@ -42,10 +42,13 @@ class SrAddInterfaceEntries():
         configuration_choice = choices["Configuration"]
 
         full_choice_argument = hand_choice + "_" + joint_choice
+        if full_choice_argument[4:] == "FJ0":
+            joint_state_choice_argument = full_choice_argument[:6]+"2"
+        else:
+            joint_state_choice_argument = full_choice_argument
+        joint_state_selection = self._get_joint_state_topic(joint_state_choice_argument)
 
         controller_type = self._check_loaded_controllers()
-        joint_state_selection = self._get_joint_state_topic(full_choice_argument)
-
         # Position Control Topic
         if controller_type == "trajectory":
             position_control_topic = self.create_trajectory_control_topic(hand_choice, joint_state_selection,
@@ -74,8 +77,8 @@ class SrAddInterfaceEntries():
         if configuration_choice == "Position_Control":
             plots_list[0].set_title_and_frame_rate("{}_{}".format(hand_choice, joint_choice), 30)
             try:
-                plots_list[0].add_curve(position_control_time_receipt, position_control_topic, 0, "Measured Position")
-                plots_list[0].add_curve(joint_state_time_receipt, joint_state_position_topic, 1, "Commanded Position")
+                plots_list[0].add_curve(position_control_time_receipt, position_control_topic, 0, "Commanded Position")
+                plots_list[0].add_curve(joint_state_time_receipt, joint_state_position_topic, 1, "Measured Position")
             except:
                 rospy.logerr("Could not create position control configuration, are controller loaded?")
         else:
@@ -85,16 +88,14 @@ class SrAddInterfaceEntries():
         t.start()
 
     def _start_rqt(self):
-        xml_dir = os.path.expanduser("~/projects/shadow_robot/base_deps/src/sr_visualization_common/"
-                                     "sr_gui_dynamic_plot_tool/xml_configurations")
+        package_dir = rospkg.RosPack().get_path("sr_gui_dynamic_plot_tool")
+        xml_dir = package_dir + "/xml_configurations"
 
         subprocess.call("rosrun rqt_multiplot rqt_multiplot --multiplot-config {}/{}".format(xml_dir,
                         self.xml_cfg_name), shell=True)
 
     def _get_joint_state_topic(self, selected_joint_name):
         for index, name in enumerate(self._joint_state_msg.name):
-            print("Index js: ", index)
-            print("Name js: ", name)
             if name == selected_joint_name:
                 return index
 
@@ -107,10 +108,10 @@ class SrAddInterfaceEntries():
         try:
             resp1 = list_controllers()
             for controller in resp1.controller:
-                if controller.type == "position_controllers/JointTrajectoryController":
-                    return "trajectory"
-                elif controller.type == "effort_controllers/JointPositionController":
+                if controller.type == "sr_mechanism_controllers/SrhJointPositionController":
                     return "position"
+                elif controller.type == "position_controllers/JointTrajectoryController":
+                    return "trajectory"
                 else:
                     rospy.logwarn("No position or trajectory controller loaded")
         except rospy.ServiceException:
@@ -124,7 +125,8 @@ class SrAddInterfaceEntries():
         return TrajCtrlTopic
 
     def create_position_control_topic(self, joint_selection, time_receipt):
-        PosCtrlTopic = TopicStruct(topic_name="/{}_position_controller/command".format(joint_selection),
+        joint_selection = joint_selection.lower()
+        PosCtrlTopic = TopicStruct(topic_name="/sh_{}_position_controller/command".format(joint_selection),
                                    topic_field="data",
                                    msg_type="std_msgs/Float64",
                                    time_receipt=time_receipt)
