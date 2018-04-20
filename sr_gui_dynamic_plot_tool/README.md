@@ -9,7 +9,7 @@ Dynamic Plot Tool.
 
 On plugin start up this bar will be shown:
 
-![alt text](https://github.com/shadow-robot/sr-visualization/blob/F%23SRC-1485_implement_rqt_dyn_plots/sr_gui_dynamic_plot_tool/BarPlugin.png)
+![alt text](https://github.com/shadow-robot/sr_visualization_common/blob/F%23SRC-1485_implement_rqt_dyn_plots/sr_gui_dynamic_plot_tool/BarPlugin.png)
 
 From this it's possible to select the script with the topics and plot configurations to run.<br/>
 
@@ -21,12 +21,12 @@ as shown in the images below.<br/>
 
 # Example view Agile Grasper
 
-![alt text](https://github.com/shadow-robot/sr-visualization/blob/F%23SRC-1485_implement_rqt_dyn_plots/sr_gui_dynamic_plot_tool/AgileGrasper_example.png)
+![alt text](https://github.com/shadow-robot/sr_visualization_common/blob/F%23SRC-1485_implement_rqt_dyn_plots/sr_gui_dynamic_plot_tool/AgileGrasper_example.png)
 
 
 # Example view Hand E
 
-![alt text](https://github.com/shadow-robot/sr-visualization/blob/F%23SRC-1485_implement_rqt_dyn_plots/sr_gui_dynamic_plot_tool/HandE_example.png)
+![alt text](https://github.com/shadow-robot/sr_visualization_common/blob/F%23SRC-1485_implement_rqt_dyn_plots/sr_gui_dynamic_plot_tool/HandE_example.png)
 
 In those GUI select the Hand, the Finger, the Joint and the Configuration you are interested in plotting.<br/>
 By clicking **Plot** a new instance of rqt_multiplot with the requested plot will be generated.<br/>
