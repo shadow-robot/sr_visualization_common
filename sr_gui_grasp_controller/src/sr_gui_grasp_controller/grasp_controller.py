@@ -403,7 +403,7 @@ class SrGuiGraspController(Plugin):
         self.setObjectName('SrGuiGraspController')
 
         self.icon_dir = os.path.join(
-            rospkg.RosPack().get_path('sr_visualization_icons'), '/icons')
+            rospkg.RosPack().get_path('sr_visualization_common_icons'), '/icons')
 
         ui_file = os.path.join(rospkg.RosPack().get_path(
             'sr_gui_grasp_controller'), 'uis', 'SrGuiGraspController.ui')
