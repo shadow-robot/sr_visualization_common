@@ -72,4 +72,9 @@ class SrGuiStateSaver(Plugin):
                                 "You must choose which part of the robot you are saving for.")
             return
 
-        SrStateSaverUnsafe(name, which)
+        try:
+            SrStateSaverUnsafe(name, which)
+        except Exception as e:
+            QMessageBox.warning(self._widget, "Could not save for %s." % which,
+                                "State saver failed: " + str(e))
+            return
