@@ -10,6 +10,7 @@ from QtWidgets import QWidget
 import rospy
 import rospkg
 from sr_robot_msgs.srv import RobotTeachMode, RobotTeachModeRequest, RobotTeachModeResponse
+from sr_utilities.hand_finder import HandFinder
 
 
 class SrGuiChangeControllers(Plugin):
@@ -21,6 +22,11 @@ class SrGuiChangeControllers(Plugin):
     def __init__(self, context):
         super(SrGuiChangeControllers, self).__init__(context)
         self.setObjectName('SrGuiTeachMode')
+
+        hand_finder = HandFinder()
+        hand_e = hand_finder.hand_e_available()
+        # hand_h = hand_finder.hand_h_available()
+        self.modes_str = ["TRAJECTORY_MODE", "TEACH_MODE", "POSITION_MODE", "GRASP_MODE"]
 
         self._publisher = None
         self._widget = QWidget()
@@ -49,6 +55,8 @@ class SrGuiChangeControllers(Plugin):
             self.teach_mode_button_toggled_rh)
         self._widget.radioButton_13.toggled.connect(
             self.teach_mode_button_toggled_rh)
+        if hand_e:
+            self._widget.radioButton_13.hide()
 
         # lh group
         self._lh_teach_buttons.append(self._widget.radioButton_4)
@@ -63,6 +71,8 @@ class SrGuiChangeControllers(Plugin):
             self.teach_mode_button_toggled_lh)
         self._widget.radioButton_14.toggled.connect(
             self.teach_mode_button_toggled_lh)
+        if hand_e:
+            self._widget.radioButton_14.hide()
 
         # ra group
         self._ra_teach_buttons.append(self._widget.radioButton_7)
@@ -111,7 +121,7 @@ class SrGuiChangeControllers(Plugin):
             else:
                 rospy.logerr("Invalid input for robot %s", robot)
                 return
-            rospy.loginfo("Changing robot %s to mode %d", robot, mode)
+            rospy.loginfo("Changing robot {} to mode {}".format(robot, self.modes_str[mode]))
             self.change_teach_mode(mode, robot)
 
     def _check_arm_mode(self, robot, buttons):
@@ -148,13 +158,14 @@ class SrGuiChangeControllers(Plugin):
         req = RobotTeachModeRequest()
         req.teach_mode = mode
         req.robot = robot
+        modes_str = ["TRAJECTORY_MODE", "TEACH_MODE", "POSITION_MODE", "GRASP_MODE"]
         try:
             resp = teach_mode_client(req)
             if resp.result == RobotTeachModeResponse.ERROR:
                 rospy.logerr(
-                    "Failed to change robot %s to mode %d", robot, mode)
+                    "Failed to change robot {} to mode {}".format(robot, modes_str[mode]))
             else:
                 rospy.loginfo(
-                    "Changed robot %s to mode %d Result = %d", robot, mode, resp.result)
+                    "Changed robot {} to mode {} Result = {}".format(robot, modes_str[mode], resp.result))
         except rospy.ServiceException:
             rospy.logerr("Failed to call service teach_mode")
