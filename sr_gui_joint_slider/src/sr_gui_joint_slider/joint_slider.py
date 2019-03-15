@@ -97,6 +97,8 @@ class SrGuiJointSlider(Plugin):
             self.on_slider_release_checkbox_clicked_)
 
         self._widget.reloadButton.setEnabled(True)
+        self._widget.joint_name_filter_edit.setText("rh")
+
         self.on_reload_button_cicked_()
 
     def _unregister(self):
