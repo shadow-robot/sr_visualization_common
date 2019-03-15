@@ -160,7 +160,8 @@ include_directories(
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
 install(PROGRAMS
-   scripts/base_configuration.py
+   src/sr_gui_dynamic_plot_tool/scripts/agile_grasper_default_configuration.py
+   src/sr_gui_dynamic_plot_tool/scripts/hand_e_default_configuration.py
    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
