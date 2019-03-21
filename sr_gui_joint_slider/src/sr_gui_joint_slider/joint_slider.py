@@ -106,14 +106,14 @@ class SrGuiJointSlider(Plugin):
 
     def _get_hand_prefix(self):
         hand_finder = HandFinder()
-        hand_parameters = hand_finder.get_hand_parameters()
         if hand_finder._hand_e:
+            hand_parameters = hand_finder.get_hand_parameters()
             hand_prefix = hand_parameters.joint_prefix
         elif hand_finder._hand_h:
-            hand_prefix = "fh_"
+            hand_prefix, value = hand_finder._hand_h_parameters.items()[0]
+            hand_prefix = hand_prefix + "_"
         else:
             hand_prefix = ""
-
         return hand_prefix
 
     def _unregister(self):
