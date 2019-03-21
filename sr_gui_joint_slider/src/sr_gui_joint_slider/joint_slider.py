@@ -100,7 +100,6 @@ class SrGuiJointSlider(Plugin):
         self._widget.reloadButton.setEnabled(True)
 
         self.hand_prefix = self._get_hand_prefix()
-
         self._widget.joint_name_filter_edit.setText(self.hand_prefix)
 
         self.on_reload_button_cicked_()
