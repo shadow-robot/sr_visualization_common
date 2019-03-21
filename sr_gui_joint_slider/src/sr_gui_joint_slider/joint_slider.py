@@ -38,6 +38,7 @@ from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 
 from sr_gui_joint_slider.sliders import JointController, Joint, EtherCATHandSlider
 from sr_gui_joint_slider.sliders import EtherCATHandTrajectorySlider, EtherCATSelectionSlider
+from sr_utilities.hand_finder import HandFinder
 
 
 class SrGuiJointSlider(Plugin):
@@ -97,9 +98,24 @@ class SrGuiJointSlider(Plugin):
             self.on_slider_release_checkbox_clicked_)
 
         self._widget.reloadButton.setEnabled(True)
-        self._widget.joint_name_filter_edit.setText("rh")
+
+        self.hand_prefix = self._get_hand_prefix()
+
+        self._widget.joint_name_filter_edit.setText(self.hand_prefix)
 
         self.on_reload_button_cicked_()
+
+    def _get_hand_prefix(self):
+        hand_finder = HandFinder()
+        hand_parameters = hand_finder.get_hand_parameters()
+        if hand_finder._hand_e:
+            hand_prefix = hand_parameters.joint_prefix
+        elif hand_finder._hand_h:
+            hand_prefix = "fh_"
+        else:
+            hand_prefix = ""
+
+        return hand_prefix
 
     def _unregister(self):
         pass
