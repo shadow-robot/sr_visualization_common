@@ -38,6 +38,7 @@ from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 
 from sr_gui_joint_slider.sliders import JointController, Joint, EtherCATHandSlider
 from sr_gui_joint_slider.sliders import EtherCATHandTrajectorySlider, EtherCATSelectionSlider
+from sr_utilities.hand_finder import HandFinder
 
 
 class SrGuiJointSlider(Plugin):
@@ -89,6 +90,8 @@ class SrGuiJointSlider(Plugin):
         self.trajectory_pub = []
         self.trajectory_target = []
 
+        self.pause_subscriber = False
+
         self._widget.reloadButton.pressed.connect(
             self.on_reload_button_cicked_)
         self._widget.refreshButton.pressed.connect(
@@ -97,9 +100,23 @@ class SrGuiJointSlider(Plugin):
             self.on_slider_release_checkbox_clicked_)
 
         self._widget.reloadButton.setEnabled(True)
-        self._widget.joint_name_filter_edit.setText("rh")
+
+        self.hand_prefix = self._get_hand_prefix()
+        self._widget.joint_name_filter_edit.setText(self.hand_prefix)
 
         self.on_reload_button_cicked_()
+
+    def _get_hand_prefix(self):
+        hand_finder = HandFinder()
+        if hand_finder._hand_e:
+            hand_parameters = hand_finder.get_hand_parameters()
+            key, hand_prefix = hand_parameters.joint_prefix.items()[0]
+        elif hand_finder._hand_h:
+            hand_prefix, value = hand_finder._hand_h_parameters.items()[0]
+            hand_prefix = hand_prefix + "_"
+        else:
+            hand_prefix = ""
+        return hand_prefix
 
     def _unregister(self):
         pass
@@ -122,6 +139,7 @@ class SrGuiJointSlider(Plugin):
         Load the correct robot library
         Create and load the new slider widgets
         """
+        self.pause_subscriber = True
 
         self._load_robot_description()
         controllers = self.get_current_controllers()
@@ -133,6 +151,8 @@ class SrGuiJointSlider(Plugin):
         self._widget.sliderReleaseCheckBox.setCheckState(Qt.Unchecked)
 
         self.load_new_sliders_()
+
+        self.pause_subscriber = False
 
     def on_refresh_button_cicked_(self):
         """
@@ -379,13 +399,14 @@ class SrGuiJointSlider(Plugin):
         return joints
 
     def _trajectory_state_cb(self, msg, index):
-        if not self.trajectory_target[index].joint_names:  # Initialize the targets with the current position
-            self.trajectory_target[index].joint_names = msg.joint_names
-            point = JointTrajectoryPoint()
-            point.positions = list(msg.actual.positions)  # This is a list for some reason? Should be tuple..
-            point.velocities = [0] * len(msg.joint_names)
-            point.time_from_start = rospy.Duration.from_sec(0.005)
-            self.trajectory_target[index].points = [point]
+        if not self.pause_subscriber:
+            if not self.trajectory_target[index].joint_names:  # Initialize the targets with the current position
+                self.trajectory_target[index].joint_names = msg.joint_names
+                point = JointTrajectoryPoint()
+                point.positions = list(msg.actual.positions)  # This is a list for some reason? Should be tuple..
+                point.velocities = [0] * len(msg.joint_names)
+                point.time_from_start = rospy.Duration.from_sec(0.005)
+                self.trajectory_target[index].points = [point]
 
-        for cb in self.trajectory_state_slider_cb[index]:  # call the callbacks of the sliders in the list
-            cb(msg)
+            for cb in self.trajectory_state_slider_cb[index]:  # call the callbacks of the sliders in the list
+                cb(msg)
