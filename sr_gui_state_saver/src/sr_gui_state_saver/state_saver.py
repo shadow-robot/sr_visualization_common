@@ -84,7 +84,7 @@ class SrGuiStateSaver(Plugin):
             return
 
         try:
-            SrStateSaverUnsafe(name, which)
+            SrStateSaverUnsafe(name, which, side)
         except Exception as e:
             QMessageBox.warning(self._widget, "Could not save for %s." % which,
                                 "State saver failed: " + str(e))
