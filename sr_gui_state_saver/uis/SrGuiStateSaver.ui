@@ -87,12 +87,26 @@
    <item row="0" column="0" colspan="5">
     <widget class="QLineEdit" name="edit_name"/>
    </item>
+   <item row="1" column="0">
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string>Choose Robot group:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0">
+    <widget class="QLabel" name="label_2">
+     <property name="text">
+      <string>Choose side:</string>
+     </property>
+    </widget>
+   </item>
   </layout>
  </widget>
  <resources/>
  <connections/>
  <buttongroups>
-  <buttongroup name="robot_button_group"/>
   <buttongroup name="side_button_group"/>
+  <buttongroup name="robot_button_group"/>
  </buttongroups>
 </ui>

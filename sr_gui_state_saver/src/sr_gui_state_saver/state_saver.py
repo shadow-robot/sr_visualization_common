@@ -68,7 +68,7 @@ class SrGuiStateSaver(Plugin):
             which = "both"
         else:
             QMessageBox.warning(self._widget, "Choose what to save!",
-                                "You must choose which part of the robot you are saving for.")
+                                "You must choose which Robot group you are saving for.")
             return
 
         side = ""
@@ -80,7 +80,7 @@ class SrGuiStateSaver(Plugin):
             side = "bimanual"
         else:
             QMessageBox.warning(self._widget, "Choose what side to save!",
-                                "You must choose the side of the robot you are saving for.")
+                                "You must choose the side of the Robot you are saving for.")
             return
 
         try:
