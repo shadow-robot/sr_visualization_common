@@ -68,11 +68,23 @@ class SrGuiStateSaver(Plugin):
             which = "both"
         else:
             QMessageBox.warning(self._widget, "Choose what to save!",
-                                "You must choose which part of the robot you are saving for.")
+                                "You must choose which Robot group you are saving for.")
+            return
+
+        side = ""
+        if self._widget.radio_right.isChecked():
+            side = "right"
+        elif self._widget.radio_left.isChecked():
+            side = "left"
+        elif self._widget.radio_bimanual.isChecked():
+            side = "bimanual"
+        else:
+            QMessageBox.warning(self._widget, "Choose what side to save!",
+                                "You must choose the side of the Robot you are saving for.")
             return
 
         try:
-            SrStateSaverUnsafe(name, which)
+            SrStateSaverUnsafe(name, which, side)
         except Exception as e:
             QMessageBox.warning(self._widget, "Could not save for %s." % which,
                                 "State saver failed: " + str(e))

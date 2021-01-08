@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>622</width>
-    <height>45</height>
+    <height>124</height>
    </rect>
   </property>
   <property name="mouseTracking">
@@ -17,39 +17,96 @@
    <string>Robot State Saver</string>
   </property>
   <layout class="QGridLayout" name="gridLayout_2">
-   <item row="0" column="1">
-    <widget class="QRadioButton" name="radio_hand">
+   <item row="1" column="3">
+    <widget class="QRadioButton" name="radio_both">
      <property name="text">
-      <string>Hand</string>
+      <string>Both</string>
      </property>
+     <attribute name="buttonGroup">
+      <string notr="true">robot_button_group</string>
+     </attribute>
     </widget>
    </item>
-   <item row="0" column="2">
-    <widget class="QRadioButton" name="radio_arm">
-     <property name="text">
-      <string>Arm</string>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="4">
+   <item row="3" column="4">
     <widget class="QPushButton" name="button_save">
      <property name="text">
       <string>Save</string>
      </property>
     </widget>
    </item>
-   <item row="0" column="3">
-    <widget class="QRadioButton" name="radio_both">
+   <item row="1" column="2">
+    <widget class="QRadioButton" name="radio_arm">
      <property name="text">
-      <string>Both</string>
+      <string>Arm</string>
+     </property>
+     <attribute name="buttonGroup">
+      <string notr="true">robot_button_group</string>
+     </attribute>
+    </widget>
+   </item>
+   <item row="2" column="2">
+    <widget class="QRadioButton" name="radio_left">
+     <property name="text">
+      <string>Left</string>
+     </property>
+     <attribute name="buttonGroup">
+      <string notr="true">side_button_group</string>
+     </attribute>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <widget class="QRadioButton" name="radio_hand">
+     <property name="text">
+      <string>Hand</string>
+     </property>
+     <attribute name="buttonGroup">
+      <string notr="true">robot_button_group</string>
+     </attribute>
+    </widget>
+   </item>
+   <item row="2" column="1">
+    <widget class="QRadioButton" name="radio_right">
+     <property name="text">
+      <string>Right</string>
+     </property>
+     <attribute name="buttonGroup">
+      <string notr="true">side_button_group</string>
+     </attribute>
+    </widget>
+   </item>
+   <item row="2" column="3">
+    <widget class="QRadioButton" name="radio_bimanual">
+     <property name="text">
+      <string>Bimanual</string>
+     </property>
+     <attribute name="buttonGroup">
+      <string notr="true">side_button_group</string>
+     </attribute>
+    </widget>
+   </item>
+   <item row="0" column="0" colspan="5">
+    <widget class="QLineEdit" name="edit_name"/>
+   </item>
+   <item row="1" column="0">
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string>Choose Robot group:</string>
      </property>
     </widget>
    </item>
-   <item row="0" column="0">
-    <widget class="QLineEdit" name="edit_name"/>
+   <item row="2" column="0">
+    <widget class="QLabel" name="label_2">
+     <property name="text">
+      <string>Choose side:</string>
+     </property>
+    </widget>
    </item>
   </layout>
  </widget>
  <resources/>
  <connections/>
+ <buttongroups>
+  <buttongroup name="side_button_group"/>
+  <buttongroup name="robot_button_group"/>
+ </buttongroups>
 </ui>
