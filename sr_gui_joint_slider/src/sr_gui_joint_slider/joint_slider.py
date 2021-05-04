@@ -318,7 +318,7 @@ class SrGuiJointSlider(Plugin):
 
         for controller in controllers:
             if controller.type == "position_controllers/JointTrajectoryController" or \
-                controller.type == "velocity_controllers/ComplianceController":
+               controller.type == "velocity_controllers/ComplianceController":
                 for j_name in controller.claimed_resources[0].resources:
                     trajectory_ctrl_joint_names.append(j_name)
 
