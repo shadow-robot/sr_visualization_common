@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
 import os
 import rospkg
 import rospy
@@ -91,7 +92,7 @@ class SrAddInterfaceEntries():
             try:
                 plots_list[0].add_curve(position_control_time_receipt, position_control_topic, 0, "Commanded Position")
                 plots_list[0].add_curve(joint_state_time_receipt, joint_state_position_topic, 1, "Measured Position")
-            except:
+            except Exception:
                 rospy.logerr("Could not create position control configuration, are controller loaded?")
         else:
             rospy.logerr("No configuration selected")

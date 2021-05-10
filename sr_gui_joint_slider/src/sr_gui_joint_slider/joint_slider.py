@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2012 Shadow Robot Company Ltd.
+# Copyright 2012, 2021 Shadow Robot Company Ltd.
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -15,6 +15,7 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
+from __future__ import absolute_import
 import os
 import rospkg
 import rospy
@@ -58,6 +59,7 @@ class SrGuiJointSlider(Plugin):
         "effort_controllers/JointEffortController": ("effort", JointControllerState),
         "effort_controllers/JointPositionController": ("position", JointControllerState),
         "position_controllers/JointTrajectoryController": ("position_trajectory", JointTrajectoryControllerState),
+        "velocity_controllers/ComplianceController": ("position_trajectory", JointTrajectoryControllerState),
         "effort_controllers/JointTrajectoryController": ("position_trajectory", JointTrajectoryControllerState),
         "effort_controllers/GravityCompensatedJointTrajectoryController": ("position_trajectory",
                                                                            JointTrajectoryControllerState)}
@@ -109,9 +111,9 @@ class SrGuiJointSlider(Plugin):
         hand_finder = HandFinder()
         if hand_finder._hand_e:
             hand_parameters = hand_finder.get_hand_parameters()
-            key, hand_prefix = hand_parameters.joint_prefix.items()[0]
+            key, hand_prefix = list(hand_parameters.joint_prefix.items())[0]
         elif hand_finder._hand_h:
-            hand_prefix, value = hand_finder._hand_h_parameters.items()[0]
+            hand_prefix, value = list(hand_finder._hand_h_parameters.items())[0]
             hand_prefix = hand_prefix + "_"
         else:
             hand_prefix = ""
@@ -209,7 +211,7 @@ class SrGuiJointSlider(Plugin):
                 else:
                     slider = EtherCATHandSlider(
                         joint, slider_ui_file, self, self._widget.scrollAreaWidgetContents)
-            except Exception, e:
+            except Exception as e:
                 rospy.loginfo(e)
 
             if slider is not None:
@@ -261,7 +263,7 @@ class SrGuiJointSlider(Plugin):
             rospy.logerr(
                 "Failed to get robot description from param %s : %s" % (name, e))
             return
-        except:
+        except Exception:
             raise
 
     def _get_joint_min_max_vel(self, jname):
@@ -316,7 +318,8 @@ class SrGuiJointSlider(Plugin):
         self.trajectory_pub = []
 
         for controller in controllers:
-            if controller.type == "position_controllers/JointTrajectoryController":
+            if controller.type == "position_controllers/JointTrajectoryController" or \
+               controller.type == "velocity_controllers/ComplianceController":
                 for j_name in controller.claimed_resources[0].resources:
                     trajectory_ctrl_joint_names.append(j_name)
 

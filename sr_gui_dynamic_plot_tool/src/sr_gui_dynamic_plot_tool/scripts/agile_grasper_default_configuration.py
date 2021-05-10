@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
 import os
 import rospkg
 import rospy
@@ -108,27 +109,27 @@ class SrAddInterfaceEntries():
             plots_list[0].set_title_and_frame_rate("{}_{}{}".format(hand_choice, finger_choice, joint_choice), 30)
             try:
                 plots_list[0].add_curve(raw_encoder_time_receipt, raw_encoder_position_topic, 0, "raw_encoder_pos")
-            except:
+            except Exception:
                 rospy.logerr("Could not create configuration, are topic correctly loaded?")
         elif configuration_choice == "Raw_Encoder_Torque":
             plots_list[0].set_title_and_frame_rate("{}_{}{}".format(hand_choice, finger_choice, joint_choice), 30)
             try:
                 plots_list[0].add_curve(raw_encoder_time_receipt, raw_encoder_torque_topic, 0, "raw_encoder_torque")
-            except:
+            except Exception:
                 rospy.logerr("Could not create configuration, are topic correctly loaded?")
         elif configuration_choice == "Position_Control":
             plots_list[0].set_title_and_frame_rate("{}_{}{}".format(hand_choice, finger_choice, joint_choice), 30)
             try:
                 plots_list[0].add_curve(position_control_time_receipt, position_control_topic, 0, "Commanded Position")
                 plots_list[0].add_curve(joint_state_time_receipt, joint_state_position_topic, 1, "Measured Position")
-            except:
+            except Exception:
                 rospy.logerr("Could not create position control configuration, are controller loaded?")
         elif configuration_choice == "Torque_Control":
             plots_list[0].set_title_and_frame_rate("{}_{}{}".format(hand_choice, finger_choice, joint_choice), 30)
             try:
                 plots_list[0].add_curve(joint_state_time_receipt, joint_state_effort_topic, 0, "Measured Torque")
                 plots_list[0].add_curve(commanded_torque_time_receipt, commanded_torque_topic, 1, "Commanded Torque")
-            except:
+            except Exception:
                 rospy.logerr("Could not create torque control configuration, are controller loaded?")
         else:
             rospy.logerr("No configuration selected")

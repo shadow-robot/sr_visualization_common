@@ -16,6 +16,7 @@
 # Disabling E1002 check since it complains about super for no reason - inheriting from QObject
 # pylint: disable=E1002
 
+from __future__ import absolute_import
 import os
 from python_qt_binding import loadUi
 from qt_gui.plugin import Plugin

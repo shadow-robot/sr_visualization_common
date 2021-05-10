@@ -15,6 +15,8 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
+from __future__ import absolute_import
+from builtin import round
 import os
 import rospy
 
@@ -193,7 +195,7 @@ class EtherCATHandSlider(ExtendedSlider):
                 else:
                     self.target.setText("Tgt: 0.0")
                 self.first_update_done = True
-        except:
+        except Exception:
             pass
 
     def refresh(self):
@@ -272,7 +274,7 @@ class EtherCATHandTrajectorySlider(ExtendedSlider):
                 self.target.setText("Tgt: " + str(self.current_value))
 
                 self.first_update_done = True
-        except:
+        except Exception:
             pass
 
     def refresh(self):
