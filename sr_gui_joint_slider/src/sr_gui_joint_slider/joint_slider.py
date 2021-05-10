@@ -262,7 +262,7 @@ class SrGuiJointSlider(Plugin):
             rospy.logerr(
                 "Failed to get robot description from param %s : %s" % (name, e))
             return
-        except:
+        except Exception:
             raise
 
     def _get_joint_min_max_vel(self, jname):
