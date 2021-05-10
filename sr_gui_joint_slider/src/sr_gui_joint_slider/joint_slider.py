@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright 2012 Shadow Robot Company Ltd.
+# Copyright 2012, 2021 Shadow Robot Company Ltd.
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -58,6 +58,7 @@ class SrGuiJointSlider(Plugin):
         "effort_controllers/JointEffortController": ("effort", JointControllerState),
         "effort_controllers/JointPositionController": ("position", JointControllerState),
         "position_controllers/JointTrajectoryController": ("position_trajectory", JointTrajectoryControllerState),
+        "velocity_controllers/ComplianceController": ("position_trajectory", JointTrajectoryControllerState),
         "effort_controllers/JointTrajectoryController": ("position_trajectory", JointTrajectoryControllerState),
         "effort_controllers/GravityCompensatedJointTrajectoryController": ("position_trajectory",
                                                                            JointTrajectoryControllerState)}
@@ -316,7 +317,8 @@ class SrGuiJointSlider(Plugin):
         self.trajectory_pub = []
 
         for controller in controllers:
-            if controller.type == "position_controllers/JointTrajectoryController":
+            if controller.type == "position_controllers/JointTrajectoryController" or \
+               controller.type == "velocity_controllers/ComplianceController":
                 for j_name in controller.claimed_resources[0].resources:
                     trajectory_ctrl_joint_names.append(j_name)
 
