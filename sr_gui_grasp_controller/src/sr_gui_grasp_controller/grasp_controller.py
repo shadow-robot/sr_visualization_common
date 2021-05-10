@@ -58,7 +58,7 @@ class JointSelecter(QtWidgets.QWidget):
         col = 0
         # vectors to set the correct row in the layout for each col
         rows = [0, 0, 0, 0, 0, 0]
-        joint_names = all_joints.keys()
+        joint_names = list(all_joints.keys())
         joint_names.sort()
         for joint in joint_names:
             if "ff" in joint.lower():
@@ -219,7 +219,7 @@ class GraspSaver(QtWidgets.QDialog):
 
         joints_to_save = self.joint_selecter.get_selected()
         if len(joints_to_save) == 0:
-            joints_to_save = self.all_joints.keys()
+            joints_to_save = list(self.all_joints.keys())
 
         robot_state.joint_state.name = joints_to_save
         robot_state.joint_state.position = [
@@ -462,7 +462,7 @@ class SrGuiGraspController(Plugin):
             self.hand_combo_box = QtWidgets.QComboBox()
 
             self.hand_parameters = hand_finder.get_hand_parameters()
-            for hand_serial in self.hand_parameters.mapping.keys():
+            for hand_serial in list(self.hand_parameters.mapping.keys()):
                 self.hand_combo_box.addItem(hand_serial)
             # TODO(@anyone): adapt so that hand Hs are included as options in combo box
 
@@ -548,7 +548,7 @@ class SrGuiGraspController(Plugin):
         grasp_from = self.grasp_from_chooser.grasp
 
         for g in [grasp_to, grasp_from]:
-            for k in g.joints_and_positions.keys():
+            for k in list(g.joints_and_positions.keys()):
                 if k not in self.hand_commander._move_group_commander._g.get_joints():
                     del(g.joints_and_positions[k])
 

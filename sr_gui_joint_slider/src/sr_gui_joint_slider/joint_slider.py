@@ -110,9 +110,9 @@ class SrGuiJointSlider(Plugin):
         hand_finder = HandFinder()
         if hand_finder._hand_e:
             hand_parameters = hand_finder.get_hand_parameters()
-            key, hand_prefix = hand_parameters.joint_prefix.items()[0]
+            key, hand_prefix = list(hand_parameters.joint_prefix.items())[0]
         elif hand_finder._hand_h:
-            hand_prefix, value = hand_finder._hand_h_parameters.items()[0]
+            hand_prefix, value = list(hand_finder._hand_h_parameters.items())[0]
             hand_prefix = hand_prefix + "_"
         else:
             hand_prefix = ""
@@ -210,7 +210,7 @@ class SrGuiJointSlider(Plugin):
                 else:
                     slider = EtherCATHandSlider(
                         joint, slider_ui_file, self, self._widget.scrollAreaWidgetContents)
-            except Exception, e:
+            except Exception as e:
                 rospy.loginfo(e)
 
             if slider is not None:
