@@ -66,6 +66,7 @@ class SrGuiJointSlider(Plugin):
 
     def __init__(self, context):
         super(SrGuiJointSlider, self).__init__(context)
+        self.hand_namespace = ""
         self.setObjectName('SrGuiJointSlider')
 
         self._robot_description_xml_root = None
@@ -236,7 +237,7 @@ class SrGuiJointSlider(Plugin):
         """
         success = True
         list_controllers = rospy.ServiceProxy(
-            'controller_manager/list_controllers', ListControllers)
+            self.hand_namespace + 'controller_manager/list_controllers', ListControllers)
         try:
             resp1 = list_controllers()
         except rospy.ServiceException:
@@ -324,8 +325,8 @@ class SrGuiJointSlider(Plugin):
                     trajectory_ctrl_joint_names.append(j_name)
 
         for controller in controllers:
-            if rospy.has_param(controller.name):
-                ctrl_params = rospy.get_param(controller.name)
+            if rospy.has_param(self.hand_namespace + controller.name):
+                ctrl_params = rospy.get_param(self.hand_namespace + controller.name)
                 controller_type = ctrl_params["type"]
                 if controller_type in self.controller_state_types:
                     controller_state_type = self.controller_state_types[
@@ -337,13 +338,14 @@ class SrGuiJointSlider(Plugin):
                         # for a trajectory controller we will load a slider for every resource it manages
                         self.trajectory_target.append(JointTrajectory())
                         self.trajectory_state_sub.append(
-                            rospy.Subscriber(controller.name + "/state", controller_state_type,
+                            rospy.Subscriber(self.hand_namespace + controller.name + "/state", controller_state_type,
                                              self._trajectory_state_cb,
                                              callback_args=len(self.trajectory_state_sub)))
 
                         self.trajectory_state_slider_cb.append([])
                         self.trajectory_pub.append(
-                            rospy.Publisher(controller.name + "/command", JointTrajectory, queue_size=1, latch=True))
+                            rospy.Publisher(self.hand_namespace + controller.name + "/command", JointTrajectory,
+                                            queue_size=1, latch=True))
                         for j_name in controller.claimed_resources[0].resources:
                             joint_controller = JointController(
                                 controller.name, controller_type, controller_state_type, controller_category,
