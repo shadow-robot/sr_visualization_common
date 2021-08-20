@@ -10,3 +10,6 @@ Code Coverage|[<img src="https://codebuild.eu-west-2.amazonaws.com/badges?uuid=e
 # sr-visualization
 
 This is a package with GUI plugins which can be used to control the different nodes of the shadow_robot stack. The GUI plugins are programmed in Python and can be started from within rqt
+
+## Note
+If the hand is started with a namespace, `joint_slider.py` will not work out of the box. To fix it, you need to change `self.hand_namespace` in the file to your hand's namespace. for example: `self.hand_namespace = "/hand/"`
