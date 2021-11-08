@@ -311,11 +311,6 @@ class SrGuiJointSlider(Plugin):
     def _create_joints(self, controllers):
         joints = []
         trajectory_ctrl_joint_names = []
-        self.trajectory_target = []
-        self.trajectory_state_sub = []
-        # self.trajectory_state = []
-        self.trajectory_state_slider_cb = []
-        self.trajectory_pub = []
 
         for controller in controllers:
             if controller.type == "position_controllers/JointTrajectoryController" or \
