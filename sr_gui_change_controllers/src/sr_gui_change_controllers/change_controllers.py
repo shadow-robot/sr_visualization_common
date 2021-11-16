@@ -21,8 +21,11 @@ import os
 from python_qt_binding import loadUi
 from qt_gui.plugin import Plugin
 from QtWidgets import QWidget
+from QtGui import QIcon
 import rospy
 import rospkg
+from controller_manager_msgs.srv import ListControllers
+
 from sr_robot_msgs.srv import RobotTeachMode, RobotTeachModeRequest, RobotTeachModeResponse
 from sr_utilities.hand_finder import HandFinder
 
@@ -32,6 +35,10 @@ class SrGuiChangeControllers(Plugin):
     """
     A rosgui plugin for loading the different controllers
     """
+    ICON_DIR = os.path.join(
+        rospkg.RosPack().get_path('sr_visualization_icons'), 'icons')
+    CONTROLLER_ON_ICON = QIcon(os.path.join(ICON_DIR, 'green.png'))
+    CONTROLLER_OFF_ICON = QIcon(os.path.join(ICON_DIR, 'red.png'))
 
     def __init__(self, context):
         super(SrGuiChangeControllers, self).__init__(context)
@@ -57,58 +64,122 @@ class SrGuiChangeControllers(Plugin):
         self._la_teach_buttons = []
 
         # rh group
-        self._rh_teach_buttons.append(self._widget.radioButton_1)
-        self._rh_teach_buttons.append(self._widget.radioButton_2)
-        self._rh_teach_buttons.append(self._widget.radioButton_3)
-        self._rh_teach_buttons.append(self._widget.radioButton_13)
-        self._widget.radioButton_1.toggled.connect(
+        self._widget.rh_traj.setIcon(self.CONTROLLER_OFF_ICON)
+        self._widget.rh_traj.toggled.connect(
             self.teach_mode_button_toggled_rh)
-        self._widget.radioButton_2.toggled.connect(
+        self._rh_teach_buttons.append(self._widget.rh_traj)
+        
+        self._widget.rh_pos.setIcon(self.CONTROLLER_OFF_ICON)
+        self._widget.rh_pos.toggled.connect(
             self.teach_mode_button_toggled_rh)
-        self._widget.radioButton_3.toggled.connect(
+        self._rh_teach_buttons.append(self._widget.rh_pos)
+
+        self._widget.rh_teach.setIcon(self.CONTROLLER_OFF_ICON)
+        self._widget.rh_teach.toggled.connect(
             self.teach_mode_button_toggled_rh)
-        self._widget.radioButton_13.toggled.connect(
-            self.teach_mode_button_toggled_rh)
-        if hand_e:
-            self._widget.radioButton_13.hide()
+        self._rh_teach_buttons.append(self._widget.rh_teach)
+
+        ## hide teach mode if arm...
+        # if hand_e:
+        #     self._widget.radioButton_14.hide()
 
         # lh group
-        self._lh_teach_buttons.append(self._widget.radioButton_4)
-        self._lh_teach_buttons.append(self._widget.radioButton_5)
-        self._lh_teach_buttons.append(self._widget.radioButton_6)
-        self._lh_teach_buttons.append(self._widget.radioButton_14)
-        self._widget.radioButton_4.toggled.connect(
+        self._widget.lh_traj.setIcon(self.CONTROLLER_OFF_ICON)
+        self._widget.lh_traj.toggled.connect(
             self.teach_mode_button_toggled_lh)
-        self._widget.radioButton_5.toggled.connect(
+        self._lh_teach_buttons.append(self._widget.lh_traj)
+        
+        self._widget.lh_pos.setIcon(self.CONTROLLER_OFF_ICON)
+        self._widget.lh_pos.toggled.connect(
             self.teach_mode_button_toggled_lh)
-        self._widget.radioButton_6.toggled.connect(
+        self._lh_teach_buttons.append(self._widget.lh_pos)
+
+        self._widget.lh_teach.setIcon(self.CONTROLLER_OFF_ICON)
+        self._widget.lh_teach.toggled.connect(
             self.teach_mode_button_toggled_lh)
-        self._widget.radioButton_14.toggled.connect(
-            self.teach_mode_button_toggled_lh)
-        if hand_e:
-            self._widget.radioButton_14.hide()
+        self._lh_teach_buttons.append(self._widget.lh_teach)
+        ## hide teach mode if arm...
+        # if hand_e:
+        #     self._widget.radioButton_14.hide()
 
         # ra group
-        self._ra_teach_buttons.append(self._widget.radioButton_7)
-        self._ra_teach_buttons.append(self._widget.radioButton_8)
-        self._ra_teach_buttons.append(self._widget.radioButton_9)
-        self._widget.radioButton_7.toggled.connect(
+        self._widget.ra_traj.setIcon(self.CONTROLLER_OFF_ICON)
+        self._widget.ra_traj.toggled.connect(
             self.teach_mode_button_toggled_ra)
-        self._widget.radioButton_8.toggled.connect(
+        self._ra_teach_buttons.append(self._widget.ra_traj)
+
+        self._widget.ra_pos.setIcon(self.CONTROLLER_OFF_ICON)
+        self._widget.ra_pos.toggled.connect(
             self.teach_mode_button_toggled_ra)
-        self._widget.radioButton_9.toggled.connect(
-            self.teach_mode_button_toggled_ra)
+        self._ra_teach_buttons.append(self._widget.ra_pos)
 
         # la group
-        self._la_teach_buttons.append(self._widget.radioButton_10)
-        self._la_teach_buttons.append(self._widget.radioButton_11)
-        self._la_teach_buttons.append(self._widget.radioButton_12)
-        self._widget.radioButton_10.toggled.connect(
+        self._widget.la_traj.setIcon(self.CONTROLLER_OFF_ICON)
+        self._widget.la_traj.toggled.connect(
             self.teach_mode_button_toggled_la)
-        self._widget.radioButton_11.toggled.connect(
+        self._la_teach_buttons.append(self._widget.la_traj)
+
+        self._widget.la_pos.setIcon(self.CONTROLLER_OFF_ICON)
+        self._widget.la_pos.toggled.connect(
             self.teach_mode_button_toggled_la)
-        self._widget.radioButton_12.toggled.connect(
-            self.teach_mode_button_toggled_la)
+        self._la_teach_buttons.append(self._widget.la_pos)
+
+        self.confirm_current_control()
+
+    def confirm_current_control(self):
+        """
+        @return: list of current controllers with associated data
+        """
+        rospy.logerr("HERE ")
+        success = True
+        list_controllers = rospy.ServiceProxy(
+            'controller_manager/list_controllers', ListControllers)
+        try:
+            resp1 = list_controllers()
+        except rospy.ServiceException:
+            success = False
+
+        if success:
+            running_controllers = [c for c in resp1.controller if c.state == "running"]
+        else:
+            rospy.loginfo(
+                "Couldn't get list of controllers from controller_manager/list_controllers service")
+            return
+
+        rospy.logerr("controllers: " + str(running_controllers))
+        running_traj_controllers = []
+        running_pos_controllers = []
+        running_teach_controllers = []
+        for controller in running_controllers:
+            if "position_controller" in controller.name:
+                running_pos_controllers.append(controller.name)
+            elif "trajectory_controller" in controller.name:
+                running_traj_controllers.append(controller.name)
+            elif "effort_controller" in controller.name:
+                running_teach_controllers.append(controller.name)
+
+        robot_names = ["rh_", "lh_", "ra_", "la_"]
+        for robot_name in robot_names:
+            for pos_ctrl in running_pos_controllers:
+                if robot_name in pos_ctrl:
+                    for traj_ctrl in running_traj_controllers:
+                        if robot_name in traj_ctrl:
+                            self.update_current_controller_field(0, robot_name)
+                        else:
+                            self.update_current_controller_field(1, robot_name)
+            for teach_ctrl in running_teach_controllers:
+                if robot_name in teach_ctrl:
+                    self.update_current_controller_field(2, robot_name)
+
+    def update_current_controller_field(self, ctrl_type, robot_name):
+        if "rh_" == robot_name:
+            self._rh_teach_buttons[ctrl_type].setIcon(self.CONTROLLER_ON_ICON)
+        elif "lh_" == robot_name:
+            self._lh_teach_buttons[ctrl_type].setIcon(self.CONTROLLER_ON_ICON)
+        elif "ra_" == robot_name and ctrl_type is not 2:
+            self._ra_teach_buttons[ctrl_type].setIcon(self.CONTROLLER_ON_ICON)
+        elif "la_" == robot_name and ctrl_type is not 2:
+            self._la_teach_buttons[ctrl_type].setIcon(self.CONTROLLER_ON_ICON)
 
     def teach_mode_button_toggled_rh(self, checked):
         self.teach_mode_button_toggled(
@@ -141,24 +212,34 @@ class SrGuiChangeControllers(Plugin):
     def _check_arm_mode(self, robot, buttons):
         if buttons[0].isChecked():
             mode = RobotTeachModeRequest.TRAJECTORY_MODE
+            buttons[0].setIcon(self.CONTROLLER_ON_ICON)
+            buttons[1].setIcon(self.CONTROLLER_OFF_ICON)
         elif buttons[1].isChecked():
-            mode = RobotTeachModeRequest.TEACH_MODE
-        elif buttons[2].isChecked():
             mode = RobotTeachModeRequest.POSITION_MODE
+            buttons[0].setIcon(self.CONTROLLER_OFF_ICON)
+            buttons[1].setIcon(self.CONTROLLER_ON_ICON)
         else:
             rospy.logerr("None of the buttons checked for robot %s", robot)
             return
         return mode
 
     def _check_hand_mode(self, robot, buttons):
+        rospy.logerr(buttons)
         if buttons[0].isChecked():
             mode = RobotTeachModeRequest.TRAJECTORY_MODE
+            buttons[0].setIcon(self.CONTROLLER_ON_ICON)
+            buttons[1].setIcon(self.CONTROLLER_OFF_ICON)
+            buttons[2].setIcon(self.CONTROLLER_OFF_ICON)
         elif buttons[1].isChecked():
-            mode = RobotTeachModeRequest.TEACH_MODE
-        elif buttons[2].isChecked():
             mode = RobotTeachModeRequest.POSITION_MODE
-        elif buttons[3].isChecked():
-            mode = RobotTeachModeRequest.GRASP_MODE
+            buttons[0].setIcon(self.CONTROLLER_OFF_ICON)
+            buttons[1].setIcon(self.CONTROLLER_ON_ICON)
+            buttons[2].setIcon(self.CONTROLLER_OFF_ICON)
+        elif buttons[2].isChecked():
+            mode = RobotTeachModeRequest.TEACH_MODE
+            buttons[0].setIcon(self.CONTROLLER_OFF_ICON)
+            buttons[1].setIcon(self.CONTROLLER_OFF_ICON)
+            buttons[2].setIcon(self.CONTROLLER_ON_ICON)
         else:
             rospy.logerr("None of the buttons checked for robot %s", robot)
             return

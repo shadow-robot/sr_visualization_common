@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>698</width>
-    <height>275</height>
+    <width>770</width>
+    <height>437</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -27,185 +27,142 @@
       </widget>
      </item>
      <item>
-      <layout class="QHBoxLayout" name="horizontalLayout_9">
-       <item>
-        <spacer name="horizontalSpacer_10">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
+      <widget class="QTabWidget" name="tabWidget">
+       <property name="currentIndex">
+        <number>0</number>
+       </property>
+       <widget class="QWidget" name="hand">
+        <attribute name="title">
+         <string>Hands</string>
+        </attribute>
+        <widget class="QGroupBox" name="rh_group">
+         <property name="geometry">
+          <rect>
+           <x>93</x>
+           <y>60</y>
+           <width>191</width>
+           <height>191</height>
+          </rect>
          </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="la_group_">
          <property name="title">
-          <string>left_arm</string>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_6">
-          <item>
-           <widget class="QRadioButton" name="radioButton_10">
-            <property name="text">
-             <string>Trajectory ctrl</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QRadioButton" name="radioButton_11">
-            <property name="text">
-             <string>Teach Mode</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QRadioButton" name="radioButton_12">
-            <property name="text">
-             <string>Position ctrl</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <spacer name="horizontalSpacer_11">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="lh_group_">
-         <property name="title">
-          <string>left_hand</string>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_4">
-          <item>
-           <widget class="QRadioButton" name="radioButton_4">
-            <property name="text">
-             <string>Trajectory ctrl</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QRadioButton" name="radioButton_5">
-            <property name="text">
-             <string>Teach Mode</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QRadioButton" name="radioButton_6">
-            <property name="text">
-             <string>Position ctrl</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QRadioButton" name="radioButton_14">
-            <property name="text">
-             <string>Grasp ctrl</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <spacer name="horizontalSpacer_12">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="rh_group_">
-         <property name="title">
-          <string>right_hand</string>
+          <string>Right Hand</string>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_32">
           <item>
-           <widget class="QRadioButton" name="radioButton_1">
+           <widget class="QRadioButton" name="rh_traj">
             <property name="text">
              <string>Trajectory ctrl</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QRadioButton" name="radioButton_2">
+           <widget class="QRadioButton" name="rh_teach">
             <property name="text">
              <string>Teach Mode</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QRadioButton" name="radioButton_3">
+           <widget class="QRadioButton" name="rh_pos">
             <property name="text">
              <string>Position ctrl</string>
             </property>
            </widget>
           </item>
+         </layout>
+        </widget>
+        <widget class="QGroupBox" name="lh_group">
+         <property name="geometry">
+          <rect>
+           <x>450</x>
+           <y>60</y>
+           <width>181</width>
+           <height>191</height>
+          </rect>
+         </property>
+         <property name="title">
+          <string>Left Hand</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_7">
           <item>
-           <widget class="QRadioButton" name="radioButton_13">
+           <widget class="QRadioButton" name="lh_traj">
             <property name="text">
-             <string>Grasp ctrl</string>
+             <string>Trajectory ctrl</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="lh_teach">
+            <property name="text">
+             <string>Teach Mode</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="lh_pos">
+            <property name="text">
+             <string>Position ctrl</string>
             </property>
            </widget>
           </item>
          </layout>
         </widget>
-       </item>
-       <item>
-        <spacer name="horizontalSpacer_13">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
+       </widget>
+       <widget class="QWidget" name="arm">
+        <attribute name="title">
+         <string>Arms</string>
+        </attribute>
+        <widget class="QGroupBox" name="la_group">
+         <property name="geometry">
+          <rect>
+           <x>450</x>
+           <y>10</y>
+           <width>171</width>
+           <height>241</height>
+          </rect>
          </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="ra_group_">
          <property name="title">
-          <string>right_arm</string>
+          <string>Left Arm</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_8">
+          <item>
+           <widget class="QRadioButton" name="la_traj">
+            <property name="text">
+             <string>Trajectory ctrl</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="la_pos">
+            <property name="text">
+             <string>Position ctrl</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QGroupBox" name="ra_group">
+         <property name="geometry">
+          <rect>
+           <x>130</x>
+           <y>10</y>
+           <width>161</width>
+           <height>241</height>
+          </rect>
+         </property>
+         <property name="title">
+          <string>Right Arm</string>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_5">
           <item>
-           <widget class="QRadioButton" name="radioButton_7">
+           <widget class="QRadioButton" name="ra_traj">
             <property name="text">
              <string>Trajectory ctrl</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QRadioButton" name="radioButton_8">
-            <property name="text">
-             <string>Teach Mode</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QRadioButton" name="radioButton_9">
+           <widget class="QRadioButton" name="ra_pos">
             <property name="text">
              <string>Position ctrl</string>
             </property>
@@ -213,21 +170,16 @@
           </item>
          </layout>
         </widget>
-       </item>
-       <item>
-        <spacer name="horizontalSpacer_14">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-      </layout>
+       </widget>
+       <widget class="QWidget" name="tab">
+        <attribute name="title">
+         <string>Page</string>
+        </attribute>
+       </widget>
+      </widget>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_9"/>
      </item>
     </layout>
    </item>
