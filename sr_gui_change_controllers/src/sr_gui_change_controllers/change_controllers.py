@@ -25,7 +25,7 @@ from QtGui import QIcon
 import rospy
 import rospkg
 from controller_manager_msgs.srv import ListControllers
-
+from sensor_msgs.msg import JointState
 from sr_robot_msgs.srv import RobotTeachMode, RobotTeachModeRequest, RobotTeachModeResponse
 from sr_utilities.hand_finder import HandFinder
 
@@ -59,6 +59,8 @@ class SrGuiChangeControllers(Plugin):
         context.add_widget(self._widget)
 
 
+        avaliable_groups = self.find_avaliable_groups()
+
         self._rh_teach_buttons = []
         self._lh_teach_buttons = []
         self._ra_teach_buttons = []
@@ -79,10 +81,9 @@ class SrGuiChangeControllers(Plugin):
         self._widget.rh_teach.toggled.connect(
             self.teach_mode_button_toggled_rh)
         self._rh_teach_buttons.append(self._widget.rh_teach)
-
         ## hide teach mode if arm...
-        # if hand_e:
-        #     self._widget.radioButton_14.hide()
+        if 'ra_' or 'la_' in avaliable_groups:
+            self._widget.rh_teach.hide()
 
         # lh group
         self._widget.lh_traj.setIcon(self.CONTROLLER_OFF_ICON)
@@ -100,8 +101,8 @@ class SrGuiChangeControllers(Plugin):
             self.teach_mode_button_toggled_lh)
         self._lh_teach_buttons.append(self._widget.lh_teach)
         ## hide teach mode if arm...
-        # if hand_e:
-        #     self._widget.radioButton_14.hide()
+        if 'ra_' or 'la_' in avaliable_groups:
+            self._widget.lh_teach.hide()
 
         # ra group
         self._widget.ra_traj.setIcon(self.CONTROLLER_OFF_ICON)
@@ -126,10 +127,19 @@ class SrGuiChangeControllers(Plugin):
         self._la_teach_buttons.append(self._widget.la_pos)
 
 
-        rospy.wait_for_service("/controller_manager/switch_controller")
-        self.__switch_ctrl = rospy.ServiceProxy("/controller_manager/switch_controller", SwitchController)
-
         self.confirm_current_control()
+
+    def find_avaliable_groups(self):
+        joint_states = rospy.wait_for_message('/joint_states', JointState)
+        robot_names = ["rh_", "lh_", "ra_", "la_"]
+        avaliable_robot_names = []
+        for robot_name in robot_names:
+         for joint in joint_states.name:
+            if joint.startswith(robot_name):
+                if robot_name not in avaliable_robot_names:
+                    avaliable_robot_names.append(robot_name)
+        rospy.logerr("names: " + str(avaliable_robot_names))
+        return avaliable_robot_names
 
     def confirm_current_control(self):
         """
@@ -231,10 +241,7 @@ class SrGuiChangeControllers(Plugin):
     def _check_hand_mode(self, robot, buttons):
         rospy.logerr(buttons)
         if buttons[0].isChecked():
-            self.__switch_ctrl.call(start_controllers=["{}h_trajectory_controller".format.(robot[0]),
-                                    "{}h_trajectory_controller".format.(robot[0])],
-                                    stop_controllers=[], strictness=1)
-
+            mode = RobotTeachModeRequest.TRAJECTORY_MODE
             buttons[0].setIcon(self.CONTROLLER_ON_ICON)
             buttons[1].setIcon(self.CONTROLLER_OFF_ICON)
             buttons[2].setIcon(self.CONTROLLER_OFF_ICON)
