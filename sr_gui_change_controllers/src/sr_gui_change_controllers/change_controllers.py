@@ -58,6 +58,7 @@ class SrGuiChangeControllers(Plugin):
         self._widget.setObjectName('SrChangeControllersUI')
         context.add_widget(self._widget)
 
+
         self._rh_teach_buttons = []
         self._lh_teach_buttons = []
         self._ra_teach_buttons = []
@@ -123,6 +124,10 @@ class SrGuiChangeControllers(Plugin):
         self._widget.la_pos.toggled.connect(
             self.teach_mode_button_toggled_la)
         self._la_teach_buttons.append(self._widget.la_pos)
+
+
+        rospy.wait_for_service("/controller_manager/switch_controller")
+        self.__switch_ctrl = rospy.ServiceProxy("/controller_manager/switch_controller", SwitchController)
 
         self.confirm_current_control()
 
@@ -226,7 +231,10 @@ class SrGuiChangeControllers(Plugin):
     def _check_hand_mode(self, robot, buttons):
         rospy.logerr(buttons)
         if buttons[0].isChecked():
-            mode = RobotTeachModeRequest.TRAJECTORY_MODE
+            self.__switch_ctrl.call(start_controllers=["{}h_trajectory_controller".format.(robot[0]),
+                                    "{}h_trajectory_controller".format.(robot[0])],
+                                    stop_controllers=[], strictness=1)
+
             buttons[0].setIcon(self.CONTROLLER_ON_ICON)
             buttons[1].setIcon(self.CONTROLLER_OFF_ICON)
             buttons[2].setIcon(self.CONTROLLER_OFF_ICON)
