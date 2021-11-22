@@ -58,27 +58,21 @@ class SrGuiChangeControllers(Plugin):
         self._widget.setObjectName('SrChangeControllersUI')
         context.add_widget(self._widget)
 
-
         avaliable_groups = self.find_avaliable_groups()
-        self._widget.rh_group.setDisabled(True)
-        self._widget.lh_group.setDisabled(True)
-        self._widget.ra_group.setDisabled(True)
-        self._widget.lh_group.setDisabled(True)
 
         self._rh_teach_buttons = []
         self._lh_teach_buttons = []
         self._ra_teach_buttons = []
         self._la_teach_buttons = []
 
-        if 'rh_' in avaliable_groups:
-            rospy.logerr("YES")
-            self._widget.rh_group.setDisabled(False)
-
+        if 'rh_' not in avaliable_groups:
+            self._widget.rh_group.setDisabled(True)
+        else:
             self._widget.rh_traj.setIcon(self.CONTROLLER_OFF_ICON)
             self._widget.rh_traj.toggled.connect(
                 self.teach_mode_button_toggled_rh)
             self._rh_teach_buttons.append(self._widget.rh_traj)
-            
+
             self._widget.rh_pos.setIcon(self.CONTROLLER_OFF_ICON)
             self._widget.rh_pos.toggled.connect(
                 self.teach_mode_button_toggled_rh)
@@ -88,7 +82,7 @@ class SrGuiChangeControllers(Plugin):
             self._widget.rh_teach.toggled.connect(
                 self.teach_mode_button_toggled_rh)
             self._rh_teach_buttons.append(self._widget.rh_teach)
-            ## hide teach mode if arm...
+            # hide teach mode if arm...
             if 'ra_' or 'la_' in avaliable_groups:
                 self._widget.rh_teach.hide()
 
@@ -99,7 +93,7 @@ class SrGuiChangeControllers(Plugin):
             self._widget.lh_traj.toggled.connect(
                 self.teach_mode_button_toggled_lh)
             self._lh_teach_buttons.append(self._widget.lh_traj)
-            
+
             self._widget.lh_pos.setIcon(self.CONTROLLER_OFF_ICON)
             self._widget.lh_pos.toggled.connect(
                 self.teach_mode_button_toggled_lh)
@@ -109,7 +103,7 @@ class SrGuiChangeControllers(Plugin):
             self._widget.lh_teach.toggled.connect(
                 self.teach_mode_button_toggled_lh)
             self._lh_teach_buttons.append(self._widget.lh_teach)
-            ## hide teach mode if arm...
+            # hide teach mode if arm...
             if 'ra_' or 'la_' in avaliable_groups:
                 self._widget.lh_teach.hide()
 
@@ -146,10 +140,10 @@ class SrGuiChangeControllers(Plugin):
         robot_names = ["rh_", "lh_", "ra_", "la_"]
         avaliable_robot_names = []
         for robot_name in robot_names:
-         for joint in joint_states.name:
-            if joint.startswith(robot_name):
-                if robot_name not in avaliable_robot_names:
-                    avaliable_robot_names.append(robot_name)
+            for joint in joint_states.name:
+                if joint.startswith(robot_name):
+                    if robot_name not in avaliable_robot_names:
+                        avaliable_robot_names.append(robot_name)
         rospy.logerr("names: " + str(avaliable_robot_names))
         return avaliable_robot_names
 
