@@ -60,72 +60,84 @@ class SrGuiChangeControllers(Plugin):
 
 
         avaliable_groups = self.find_avaliable_groups()
+        self._widget.rh_group.setDisabled(True)
+        self._widget.lh_group.setDisabled(True)
+        self._widget.ra_group.setDisabled(True)
+        self._widget.lh_group.setDisabled(True)
 
         self._rh_teach_buttons = []
         self._lh_teach_buttons = []
         self._ra_teach_buttons = []
         self._la_teach_buttons = []
 
-        # rh group
-        self._widget.rh_traj.setIcon(self.CONTROLLER_OFF_ICON)
-        self._widget.rh_traj.toggled.connect(
-            self.teach_mode_button_toggled_rh)
-        self._rh_teach_buttons.append(self._widget.rh_traj)
-        
-        self._widget.rh_pos.setIcon(self.CONTROLLER_OFF_ICON)
-        self._widget.rh_pos.toggled.connect(
-            self.teach_mode_button_toggled_rh)
-        self._rh_teach_buttons.append(self._widget.rh_pos)
+        if 'rh_' in avaliable_groups:
+            rospy.logerr("YES")
+            self._widget.rh_group.setDisabled(False)
 
-        self._widget.rh_teach.setIcon(self.CONTROLLER_OFF_ICON)
-        self._widget.rh_teach.toggled.connect(
-            self.teach_mode_button_toggled_rh)
-        self._rh_teach_buttons.append(self._widget.rh_teach)
-        ## hide teach mode if arm...
-        if 'ra_' or 'la_' in avaliable_groups:
-            self._widget.rh_teach.hide()
+            self._widget.rh_traj.setIcon(self.CONTROLLER_OFF_ICON)
+            self._widget.rh_traj.toggled.connect(
+                self.teach_mode_button_toggled_rh)
+            self._rh_teach_buttons.append(self._widget.rh_traj)
+            
+            self._widget.rh_pos.setIcon(self.CONTROLLER_OFF_ICON)
+            self._widget.rh_pos.toggled.connect(
+                self.teach_mode_button_toggled_rh)
+            self._rh_teach_buttons.append(self._widget.rh_pos)
 
-        # lh group
-        self._widget.lh_traj.setIcon(self.CONTROLLER_OFF_ICON)
-        self._widget.lh_traj.toggled.connect(
-            self.teach_mode_button_toggled_lh)
-        self._lh_teach_buttons.append(self._widget.lh_traj)
-        
-        self._widget.lh_pos.setIcon(self.CONTROLLER_OFF_ICON)
-        self._widget.lh_pos.toggled.connect(
-            self.teach_mode_button_toggled_lh)
-        self._lh_teach_buttons.append(self._widget.lh_pos)
+            self._widget.rh_teach.setIcon(self.CONTROLLER_OFF_ICON)
+            self._widget.rh_teach.toggled.connect(
+                self.teach_mode_button_toggled_rh)
+            self._rh_teach_buttons.append(self._widget.rh_teach)
+            ## hide teach mode if arm...
+            if 'ra_' or 'la_' in avaliable_groups:
+                self._widget.rh_teach.hide()
 
-        self._widget.lh_teach.setIcon(self.CONTROLLER_OFF_ICON)
-        self._widget.lh_teach.toggled.connect(
-            self.teach_mode_button_toggled_lh)
-        self._lh_teach_buttons.append(self._widget.lh_teach)
-        ## hide teach mode if arm...
-        if 'ra_' or 'la_' in avaliable_groups:
-            self._widget.lh_teach.hide()
+        elif 'lh_' in avaliable_groups:
+            self._widget.lh_group.setDisabled(False)
 
-        # ra group
-        self._widget.ra_traj.setIcon(self.CONTROLLER_OFF_ICON)
-        self._widget.ra_traj.toggled.connect(
-            self.teach_mode_button_toggled_ra)
-        self._ra_teach_buttons.append(self._widget.ra_traj)
+            self._widget.lh_traj.setIcon(self.CONTROLLER_OFF_ICON)
+            self._widget.lh_traj.toggled.connect(
+                self.teach_mode_button_toggled_lh)
+            self._lh_teach_buttons.append(self._widget.lh_traj)
+            
+            self._widget.lh_pos.setIcon(self.CONTROLLER_OFF_ICON)
+            self._widget.lh_pos.toggled.connect(
+                self.teach_mode_button_toggled_lh)
+            self._lh_teach_buttons.append(self._widget.lh_pos)
 
-        self._widget.ra_pos.setIcon(self.CONTROLLER_OFF_ICON)
-        self._widget.ra_pos.toggled.connect(
-            self.teach_mode_button_toggled_ra)
-        self._ra_teach_buttons.append(self._widget.ra_pos)
+            self._widget.lh_teach.setIcon(self.CONTROLLER_OFF_ICON)
+            self._widget.lh_teach.toggled.connect(
+                self.teach_mode_button_toggled_lh)
+            self._lh_teach_buttons.append(self._widget.lh_teach)
+            ## hide teach mode if arm...
+            if 'ra_' or 'la_' in avaliable_groups:
+                self._widget.lh_teach.hide()
 
-        # la group
-        self._widget.la_traj.setIcon(self.CONTROLLER_OFF_ICON)
-        self._widget.la_traj.toggled.connect(
-            self.teach_mode_button_toggled_la)
-        self._la_teach_buttons.append(self._widget.la_traj)
+        elif 'ra_' in avaliable_groups:
+            self._widget.ra_group.setDisabled(False)
 
-        self._widget.la_pos.setIcon(self.CONTROLLER_OFF_ICON)
-        self._widget.la_pos.toggled.connect(
-            self.teach_mode_button_toggled_la)
-        self._la_teach_buttons.append(self._widget.la_pos)
+            self._widget.ra_traj.setIcon(self.CONTROLLER_OFF_ICON)
+            self._widget.ra_traj.toggled.connect(
+                self.teach_mode_button_toggled_ra)
+            self._ra_teach_buttons.append(self._widget.ra_traj)
 
+            self._widget.ra_pos.setIcon(self.CONTROLLER_OFF_ICON)
+            self._widget.ra_pos.toggled.connect(
+                self.teach_mode_button_toggled_ra)
+            self._ra_teach_buttons.append(self._widget.ra_pos)
+
+        elif 'la_' in avaliable_groups:
+            self._widget.la_group.setDisabled(False)
+
+            self._widget.la_traj.setIcon(self.CONTROLLER_OFF_ICON)
+            self._widget.la_traj.toggled.connect(
+                self.teach_mode_button_toggled_la)
+            self._la_teach_buttons.append(self._widget.la_traj)
+
+            self._widget.la_pos.setIcon(self.CONTROLLER_OFF_ICON)
+            self._widget.la_pos.toggled.connect(
+                self.teach_mode_button_toggled_la)
+            self._la_teach_buttons.append(self._widget.la_pos)
 
         self.confirm_current_control()
 
@@ -161,7 +173,7 @@ class SrGuiChangeControllers(Plugin):
                 "Couldn't get list of controllers from controller_manager/list_controllers service")
             return
 
-        rospy.logerr("controllers: " + str(running_controllers))
+        # rospy.logerr("controllers: " + str(running_controllers))
         running_traj_controllers = []
         running_pos_controllers = []
         running_teach_controllers = []
@@ -227,12 +239,8 @@ class SrGuiChangeControllers(Plugin):
     def _check_arm_mode(self, robot, buttons):
         if buttons[0].isChecked():
             mode = RobotTeachModeRequest.TRAJECTORY_MODE
-            buttons[0].setIcon(self.CONTROLLER_ON_ICON)
-            buttons[1].setIcon(self.CONTROLLER_OFF_ICON)
         elif buttons[1].isChecked():
             mode = RobotTeachModeRequest.POSITION_MODE
-            buttons[0].setIcon(self.CONTROLLER_OFF_ICON)
-            buttons[1].setIcon(self.CONTROLLER_ON_ICON)
         else:
             rospy.logerr("None of the buttons checked for robot %s", robot)
             return
@@ -242,19 +250,10 @@ class SrGuiChangeControllers(Plugin):
         rospy.logerr(buttons)
         if buttons[0].isChecked():
             mode = RobotTeachModeRequest.TRAJECTORY_MODE
-            buttons[0].setIcon(self.CONTROLLER_ON_ICON)
-            buttons[1].setIcon(self.CONTROLLER_OFF_ICON)
-            buttons[2].setIcon(self.CONTROLLER_OFF_ICON)
         elif buttons[1].isChecked():
             mode = RobotTeachModeRequest.POSITION_MODE
-            buttons[0].setIcon(self.CONTROLLER_OFF_ICON)
-            buttons[1].setIcon(self.CONTROLLER_ON_ICON)
-            buttons[2].setIcon(self.CONTROLLER_OFF_ICON)
         elif buttons[2].isChecked():
             mode = RobotTeachModeRequest.TEACH_MODE
-            buttons[0].setIcon(self.CONTROLLER_OFF_ICON)
-            buttons[1].setIcon(self.CONTROLLER_OFF_ICON)
-            buttons[2].setIcon(self.CONTROLLER_ON_ICON)
         else:
             rospy.logerr("None of the buttons checked for robot %s", robot)
             return
