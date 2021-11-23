@@ -110,7 +110,6 @@ class SrGuiChangeControllers(Plugin):
         # Disabiling until more than one control mode is avaliable for the arm
         self._widget.ra_group.hide()
         self._widget.la_group.hide()
-
         # if 'ra_' not in avaliable_groups:
         #     self._widget.ra_group.setDisabled(True)
         # else:
@@ -158,14 +157,12 @@ class SrGuiChangeControllers(Plugin):
                 if joint.startswith(robot_name):
                     if robot_name not in avaliable_robot_names:
                         avaliable_robot_names.append(robot_name)
-        rospy.logerr("names: " + str(avaliable_robot_names))
         return avaliable_robot_names
 
     def confirm_current_control(self):
         """
         @return: list of current controllers with associated data
         """
-        rospy.logerr("HERE ")
         success = True
         list_controllers = rospy.ServiceProxy(
             'controller_manager/list_controllers', ListControllers)
@@ -181,16 +178,15 @@ class SrGuiChangeControllers(Plugin):
                 "Couldn't get list of controllers from controller_manager/list_controllers service")
             return
 
-        # rospy.logerr("controllers: " + str(running_controllers))
         running_traj_controllers = []
         running_pos_controllers = []
         running_teach_controllers = []
         robot_names = ["rh_", "lh_", "ra_", "la_"]
         current_robot_control = {
-            'rh_' : None,
-            'lh_' : None,
-            'ra_' : None,
-            'la_' : None
+            'rh_': None,
+            'lh_': None,
+            'ra_': None,
+            'la_': None
         }
         for robot_name in robot_names:
             for controller in running_controllers:
@@ -204,15 +200,12 @@ class SrGuiChangeControllers(Plugin):
                     elif "effort_controller" in controller.name:
                         current_robot_control[robot_name] = 2
                         break
-        rospy.logerr("controls: " +  str(current_robot_control))
 
         for robot_name, control in current_robot_control.items():
             if control is not None:
                 self.update_current_controller_field(control, robot_name)
 
-
     def update_current_controller_field(self, ctrl_type, robot_name):
-        rospy.logerr("robot: " + str(robot_name + "ctrl type: " +  str(ctrl_type)))
         if "rh_" == robot_name:
             for button in range(len(self._rh_teach_buttons)):
                 if button == ctrl_type:
@@ -279,7 +272,6 @@ class SrGuiChangeControllers(Plugin):
         return mode
 
     def _check_hand_mode(self, robot, buttons):
-        rospy.logerr(buttons)
         if buttons[0].isChecked():
             mode = RobotTeachModeRequest.TRAJECTORY_MODE
         elif buttons[1].isChecked():
