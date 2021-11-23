@@ -20,7 +20,7 @@ from __future__ import absolute_import
 import os
 from python_qt_binding import loadUi
 from qt_gui.plugin import Plugin
-from QtWidgets import QWidget
+from QtWidgets import QWidget, QMessageBox
 from QtGui import QIcon
 import rospy
 import rospkg
@@ -146,6 +146,7 @@ class SrGuiChangeControllers(Plugin):
         #     self.teach_mode_button_toggled_la)
         # self._la_teach_buttons.append(self._widget.la_teach)
 
+        self._widget.information_box.clicked.connect(self.display_information)
         self.confirm_current_control()
 
     def find_avaliable_groups(self):
@@ -282,6 +283,20 @@ class SrGuiChangeControllers(Plugin):
             rospy.logerr("None of the buttons checked for robot %s", robot)
             return
         return mode
+
+    def display_information(self, message):
+        message = "Use this plugin to load one of the " + \
+        "different types of controllers set by default.\n" + \
+        "Simply click on a controller type, " + \
+        "and it will call a service from the controller_manager " + \
+        "to unload the currently running controller if necessary, " + \
+        "and load the one you’ve selected."
+        msg = QMessageBox()
+        msg.setWindowTitle("Information")
+        msg.setIcon(QMessageBox().Information)
+        msg.setText(message)
+        msg.setStandardButtons(QMessageBox.Ok)
+        msg.exec_()
 
     @staticmethod
     def change_teach_mode(mode, robot):
