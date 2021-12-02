@@ -59,7 +59,7 @@ class SrGuiChangeControllers(Plugin):
         context.add_widget(self._widget)
 
         self.avaliable_groups = self.find_avaliable_groups()
-        rospy.logerr("avaliable groups: " + str(self.avaliable_groups))
+
         self._rh_teach_buttons = []
         self._lh_teach_buttons = []
         self._ra_teach_buttons = []
@@ -290,7 +290,15 @@ class SrGuiChangeControllers(Plugin):
                   "Simply click on a controller type, " + \
                   "and it will call a service from the controller_manager " + \
                   "to unload the currently running controller if necessary, " + \
-                  "and load the one you’ve selected."
+                  "and load the one you’ve selected.\n" + \
+                  "Trajectory Control: This controller allows the user to define " + \
+                  "a joint space trajectory, that is a series of waypoints " + \
+                  "consisting of joint positions.\n" + \
+                  "Position Control: This uses a PID position controller. " + \
+                  "The output of the host side PID controller is sent to the motor " + \
+                  "as a PWM demand. No effort controller is used for position control.\n" + \
+                  "Teach Mode: No control is implemented on the host. The Effort " + \
+                  "demand is sent to the motor which implements it using a 5kHz control loop."
         msg = QMessageBox()
         msg.setWindowTitle("Information")
         msg.setIcon(QMessageBox().Information)
