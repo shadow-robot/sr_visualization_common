@@ -179,7 +179,6 @@ class SrGuiChangeControllers(Plugin):
                 "Couldn't get list of controllers from controller_manager/list_controllers service")
             return
 
-        rospy.logerr("running controlerrs: " + str(running_controllers))
         running_traj_controllers = []
         running_pos_controllers = []
         running_teach_controllers = []
