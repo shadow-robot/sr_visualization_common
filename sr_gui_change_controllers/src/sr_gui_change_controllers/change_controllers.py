@@ -58,14 +58,14 @@ class SrGuiChangeControllers(Plugin):
         self._widget.setObjectName('SrChangeControllersUI')
         context.add_widget(self._widget)
 
-        avaliable_groups = self.find_avaliable_groups()
-
+        self.avaliable_groups = self.find_avaliable_groups()
+        rospy.logerr("avaliable groups: " + str(self.avaliable_groups))
         self._rh_teach_buttons = []
         self._lh_teach_buttons = []
         self._ra_teach_buttons = []
         self._la_teach_buttons = []
 
-        if 'rh_' not in avaliable_groups:
+        if 'rh_' not in self.avaliable_groups:
             self._widget.rh_group.setDisabled(True)
         else:
             self._widget.rh_traj.setIcon(self.CONTROLLER_OFF_ICON)
@@ -83,10 +83,10 @@ class SrGuiChangeControllers(Plugin):
                 self.teach_mode_button_toggled_rh)
             self._rh_teach_buttons.append(self._widget.rh_teach)
             # hide teach mode if arm...
-            if 'ra_' or 'la_' in avaliable_groups:
+            if 'ra_' in self.avaliable_groups:
                 self._widget.rh_teach.hide()
 
-        if 'lh_' not in avaliable_groups:
+        if 'lh_' not in self.avaliable_groups:
             self._widget.lh_group.setDisabled(True)
         else:
             self._widget.lh_traj.setIcon(self.CONTROLLER_OFF_ICON)
@@ -104,13 +104,13 @@ class SrGuiChangeControllers(Plugin):
                 self.teach_mode_button_toggled_lh)
             self._lh_teach_buttons.append(self._widget.lh_teach)
             # hide teach mode if arm...
-            if 'ra_' or 'la_' in avaliable_groups:
+            if 'la_' in self.avaliable_groups:
                 self._widget.lh_teach.hide()
 
         # Disabiling until more than one control mode is avaliable for the arm
         self._widget.ra_group.hide()
         self._widget.la_group.hide()
-        # if 'ra_' not in avaliable_groups:
+        # if 'ra_' not in self.avaliable_groups:
         #     self._widget.ra_group.setDisabled(True)
         # else:
         #     self._widget.ra_traj.setIcon(self.CONTROLLER_OFF_ICON)
@@ -128,7 +128,7 @@ class SrGuiChangeControllers(Plugin):
         #     self.teach_mode_button_toggled_ra)
         # self._ra_teach_buttons.append(self._widget.ra_teach)
 
-        # if 'la_' not in avaliable_groups:
+        # if 'la_' not in self.avaliable_groups:
         #     self._widget.la_group.setDisabled(True)
         # else:
         #     self._widget.la_traj.setIcon(self.CONTROLLER_OFF_ICON)
@@ -179,6 +179,7 @@ class SrGuiChangeControllers(Plugin):
                 "Couldn't get list of controllers from controller_manager/list_controllers service")
             return
 
+        rospy.logerr("running controlerrs: " + str(running_controllers))
         running_traj_controllers = []
         running_pos_controllers = []
         running_teach_controllers = []
@@ -219,13 +220,13 @@ class SrGuiChangeControllers(Plugin):
                     self._lh_teach_buttons[button].setIcon(self.CONTROLLER_ON_ICON)
                 else:
                     self._lh_teach_buttons[button].setIcon(self.CONTROLLER_OFF_ICON)
-        elif "ra_" == robot_name and ctrl_type is not 2:
+        elif "ra_" == robot_name and ctrl_type != 2:
             for button in range(len(self._ra_teach_buttons)):
                 if button == ctrl_type:
                     self._ra_teach_buttons[button].setIcon(self.CONTROLLER_ON_ICON)
                 else:
                     self._ra_teach_buttons[button].setIcon(self.CONTROLLER_OFF_ICON)
-        elif "la_" == robot_name and ctrl_type is not 2:
+        elif "la_" == robot_name and ctrl_type != 2:
             for button in range(len(self._la_teach_buttons)):
                 if button == ctrl_type:
                     self._la_teach_buttons[button].setIcon(self.CONTROLLER_ON_ICON)
