@@ -286,11 +286,11 @@ class SrGuiChangeControllers(Plugin):
 
     def display_information(self, message):
         message = "Use this plugin to load one of the " + \
-        "different types of controllers set by default.\n" + \
-        "Simply click on a controller type, " + \
-        "and it will call a service from the controller_manager " + \
-        "to unload the currently running controller if necessary, " + \
-        "and load the one you’ve selected."
+                  "different types of controllers set by default.\n" + \
+                  "Simply click on a controller type, " + \
+                  "and it will call a service from the controller_manager " + \
+                  "to unload the currently running controller if necessary, " + \
+                  "and load the one you’ve selected."
         msg = QMessageBox()
         msg.setWindowTitle("Information")
         msg.setIcon(QMessageBox().Information)
