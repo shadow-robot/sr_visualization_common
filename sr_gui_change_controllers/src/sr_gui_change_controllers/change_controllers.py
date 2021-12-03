@@ -138,7 +138,7 @@ class SrGuiChangeControllers(Plugin):
             rospy.logerr(
                 "Couldn't get list of controllers from controller_manager/list_controllers service")
             return
-        
+
         running_controllers = [c for c in resp1.controller if c.state == "running"]
 
         current_robot_control = {
