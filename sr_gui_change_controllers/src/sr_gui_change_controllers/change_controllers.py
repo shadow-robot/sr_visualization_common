@@ -36,7 +36,7 @@ class SrGuiChangeControllers(Plugin):
     A rosgui plugin for loading the different controllers
     """
     ICON_DIR = os.path.join(
-        rospkg.RosPack().get_path('sr_visualization_icons'), 'icons')
+        rospkg.RosPack().get_path('sr_visualization_common_icons'), 'icons')
     CONTROLLER_ON_ICON = QIcon(os.path.join(ICON_DIR, 'green.png'))
     CONTROLLER_OFF_ICON = QIcon(os.path.join(ICON_DIR, 'red.png'))
 
@@ -46,7 +46,6 @@ class SrGuiChangeControllers(Plugin):
 
         hand_finder = HandFinder()
         hand_e = hand_finder.hand_e_available()
-        # hand_h = hand_finder.hand_h_available()
         self.modes_str = ["TRAJECTORY_MODE", "TEACH_MODE", "POSITION_MODE", "GRASP_MODE"]
 
         self._publisher = None
@@ -58,14 +57,15 @@ class SrGuiChangeControllers(Plugin):
         self._widget.setObjectName('SrChangeControllersUI')
         context.add_widget(self._widget)
 
-        self.avaliable_groups = self.find_avaliable_groups()
+        self.robot_names = ["rh_", "lh_", "ra_", "la_"]
+        self.avaliable_controller_groups = self.find_active_control_groups()
 
         self._rh_teach_buttons = []
         self._lh_teach_buttons = []
         self._ra_teach_buttons = []
         self._la_teach_buttons = []
 
-        if 'rh_' not in self.avaliable_groups:
+        if 'rh_' not in self.avaliable_controller_groups:
             self._widget.rh_group.setDisabled(True)
         else:
             self._widget.rh_traj.setIcon(self.CONTROLLER_OFF_ICON)
@@ -83,10 +83,10 @@ class SrGuiChangeControllers(Plugin):
                 self.teach_mode_button_toggled_rh)
             self._rh_teach_buttons.append(self._widget.rh_teach)
             # hide teach mode if arm...
-            if 'ra_' in self.avaliable_groups:
+            if 'ra_' in self.avaliable_controller_groups:
                 self._widget.rh_teach.hide()
 
-        if 'lh_' not in self.avaliable_groups:
+        if 'lh_' not in self.avaliable_controller_groups:
             self._widget.lh_group.setDisabled(True)
         else:
             self._widget.lh_traj.setIcon(self.CONTROLLER_OFF_ICON)
@@ -104,56 +104,21 @@ class SrGuiChangeControllers(Plugin):
                 self.teach_mode_button_toggled_lh)
             self._lh_teach_buttons.append(self._widget.lh_teach)
             # hide teach mode if arm...
-            if 'la_' in self.avaliable_groups:
+            if 'la_' in self.avaliable_controller_groups:
                 self._widget.lh_teach.hide()
 
+        # TODO: add buttons when more controllers are available for arms.
         # Disabiling until more than one control mode is avaliable for the arm
         self._widget.ra_group.hide()
         self._widget.la_group.hide()
-        # if 'ra_' not in self.avaliable_groups:
-        #     self._widget.ra_group.setDisabled(True)
-        # else:
-        #     self._widget.ra_traj.setIcon(self.CONTROLLER_OFF_ICON)
-        #     self._widget.ra_traj.toggled.connect(
-        #         self.teach_mode_button_toggled_ra)
-        #     self._ra_teach_buttons.append(self._widget.ra_traj)
-
-        #     self._widget.ra_pos.setIcon(self.CONTROLLER_OFF_ICON)
-        #     self._widget.ra_pos.toggled.connect(
-        #         self.teach_mode_button_toggled_ra)
-        #     self._ra_teach_buttons.append(self._widget.ra_pos)
-
-        # self._widget.ra_teach.setIcon(self.CONTROLLER_OFF_ICON)
-        # self._widget.ra_teach.toggled.connect(
-        #     self.teach_mode_button_toggled_ra)
-        # self._ra_teach_buttons.append(self._widget.ra_teach)
-
-        # if 'la_' not in self.avaliable_groups:
-        #     self._widget.la_group.setDisabled(True)
-        # else:
-        #     self._widget.la_traj.setIcon(self.CONTROLLER_OFF_ICON)
-        #     self._widget.la_traj.toggled.connect(
-        #         self.teach_mode_button_toggled_la)
-        #     self._la_teach_buttons.append(self._widget.la_traj)
-
-        #     self._widget.la_pos.setIcon(self.CONTROLLER_OFF_ICON)
-        #     self._widget.la_pos.toggled.connect(
-        #         self.teach_mode_button_toggled_la)
-        #     self._la_teach_buttons.append(self._widget.la_pos)
-
-        # self._widget.la_teach.setIcon(self.CONTROLLER_OFF_ICON)
-        # self._widget.la_teach.toggled.connect(
-        #     self.teach_mode_button_toggled_la)
-        # self._la_teach_buttons.append(self._widget.la_teach)
 
         self._widget.information_box.clicked.connect(self.display_information)
         self.confirm_current_control()
 
-    def find_avaliable_groups(self):
+    def find_active_control_groups(self):
         joint_states = rospy.wait_for_message('/joint_states', JointState)
-        robot_names = ["rh_", "lh_", "ra_", "la_"]
         avaliable_robot_names = []
-        for robot_name in robot_names:
+        for robot_name in self.robot_names:
             for joint in joint_states.name:
                 if joint.startswith(robot_name):
                     if robot_name not in avaliable_robot_names:
@@ -170,26 +135,19 @@ class SrGuiChangeControllers(Plugin):
         try:
             resp1 = list_controllers()
         except rospy.ServiceException:
-            success = False
-
-        if success:
-            running_controllers = [c for c in resp1.controller if c.state == "running"]
-        else:
-            rospy.loginfo(
+            rospy.logerr(
                 "Couldn't get list of controllers from controller_manager/list_controllers service")
             return
+        
+        running_controllers = [c for c in resp1.controller if c.state == "running"]
 
-        running_traj_controllers = []
-        running_pos_controllers = []
-        running_teach_controllers = []
-        robot_names = ["rh_", "lh_", "ra_", "la_"]
         current_robot_control = {
             'rh_': None,
             'lh_': None,
             'ra_': None,
             'la_': None
         }
-        for robot_name in robot_names:
+        for robot_name in self.robot_names:
             for controller in running_controllers:
                 if robot_name in controller.name:
                     if "position_controller" in controller.name:
@@ -231,6 +189,9 @@ class SrGuiChangeControllers(Plugin):
                     self._la_teach_buttons[button].setIcon(self.CONTROLLER_ON_ICON)
                 else:
                     self._la_teach_buttons[button].setIcon(self.CONTROLLER_OFF_ICON)
+        else:
+            rospy.logerr("Unknown robot name: {}".format(robot_name))
+            return
 
     def teach_mode_button_toggled_rh(self, checked):
         self.teach_mode_button_toggled(
@@ -258,8 +219,8 @@ class SrGuiChangeControllers(Plugin):
                 rospy.logerr("Invalid input for robot %s", robot)
                 return
             rospy.loginfo("Changing robot {} to mode {}".format(robot, self.modes_str[mode]))
-            changed_position = self.change_teach_mode(mode, robot)
-            if changed_position:
+            changed_control = self.change_teach_mode(mode, robot)
+            if changed_control:
                 self.confirm_current_control()
 
     def _check_arm_mode(self, robot, buttons):
