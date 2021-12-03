@@ -125,10 +125,6 @@ class SrGuiChangeControllers(Plugin):
         return avaliable_robot_names
 
     def confirm_current_control(self):
-        """
-        @return: list of current controllers with associated data
-        """
-        success = True
         list_controllers = rospy.ServiceProxy(
             'controller_manager/list_controllers', ListControllers)
         try:
