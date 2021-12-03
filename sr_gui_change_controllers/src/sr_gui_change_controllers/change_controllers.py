@@ -107,8 +107,7 @@ class SrGuiChangeControllers(Plugin):
             if 'la_' in self.avaliable_controller_groups:
                 self._widget.lh_teach.hide()
 
-        # TODO: add buttons when more controllers are available for arms.
-        # Disabiling until more than one control mode is avaliable for the arm
+        # TODO: add buttons when more controller modes are available for arms.
         self._widget.ra_group.hide()
         self._widget.la_group.hide()
 
