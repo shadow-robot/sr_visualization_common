@@ -221,7 +221,7 @@ class SrGuiChangeControllers(Plugin):
             else:
                 error = "Could not change {} control.".format(robot)
                 QMessageBox.warning(self._widget, "Control Not Changed!", error)
-                rospy.logerr((error)
+                rospy.logerr(error)
 
     def _check_arm_mode(self, robot, buttons):
         if buttons[0].isChecked():
