@@ -108,12 +108,11 @@ class SrGuiStateSaver(Plugin):
             SrStateSaverUnsafe(name, which, side)
             if self._has_state(name, '').exists:
                 state = self._get_state(name, '').state.joint_state
-                joint_names = state.name
-                joint_positions = state.position
+                rounded_positions = [round(position, 5) for position in state.position]
+                joints = dict(zip(state.name, rounded_positions))
                 QMessageBox.information(self._widget, "State Save Successful!",
                                         "State '{}' saved for {} {}.\n\n".format(name, side, which) +
-                                        "Joint names: {}\n".format(joint_names) +
-                                        "Joint angles: {}".format(joint_positions))
+                                        "Joint names and angles: {}\n".format(joints))
         except Exception as e:
             QMessageBox.warning(self._widget, "Could not save for %s." % which,
                                 "State saver failed: " + str(e))
