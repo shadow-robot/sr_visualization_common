@@ -21,6 +21,7 @@
 from __future__ import absolute_import
 import os
 import rospkg
+import rospy
 
 from qt_gui.plugin import Plugin
 from python_qt_binding import loadUi
@@ -28,6 +29,8 @@ from python_qt_binding import loadUi
 from QtWidgets import QWidget, QMessageBox, QFrame, \
     QHBoxLayout, QCheckBox, QLabel
 
+from moveit_msgs.srv import CheckIfRobotStateExistsInWarehouse as HasState
+from moveit_msgs.srv import GetRobotStateFromWarehouse as GetState
 from sr_robot_commander.sr_robot_state_saver import SrStateSaverUnsafe
 
 
@@ -51,7 +54,24 @@ class SrGuiStateSaver(Plugin):
         self._widget.setObjectName('SrStateSaverUi')
         context.add_widget(self._widget)
 
+        self._has_state = rospy.ServiceProxy("/has_robot_state", HasState)
+        self._get_state = rospy.ServiceProxy('/get_robot_state', GetState)
+
+        self._widget.information_box.clicked.connect(self.display_information)
         self._widget.button_save.clicked.connect(self._button_pressed)
+
+    def display_information(self, message):
+        message = "To save a state you must first be connected to the warehouse. " + \
+                  "After launching the hand, click the green Connect button in the ‘Context’ tab " + \
+                  "in the Motion Planning tab of RViz.\n" + \
+                  "Next, go to the ‘Stored States’ tab in ‘Motion Planning’. " + \
+                  "Here you have full control over the saved states in the warehouse."
+        msg = QMessageBox()
+        msg.setWindowTitle("Information")
+        msg.setIcon(QMessageBox().Information)
+        msg.setText(message)
+        msg.setStandardButtons(QMessageBox.Ok)
+        msg.exec_()
 
     def _button_pressed(self):
         name = self._widget.edit_name.text()
@@ -86,6 +106,14 @@ class SrGuiStateSaver(Plugin):
 
         try:
             SrStateSaverUnsafe(name, which, side)
+            if self._has_state(name, '').exists:
+                state = self._get_state(name, '').state.joint_state
+                joint_names = state.name
+                joint_positions = state.position
+                QMessageBox.information(self._widget, "State Save Successful!",
+                                        "State '{}' saved for {} {}.\n\n".format(name, side, which) +
+                                        "Joint names: {}\n".format(joint_names) +
+                                        "Joint angles: {}".format(joint_positions))
         except Exception as e:
             QMessageBox.warning(self._widget, "Could not save for %s." % which,
                                 "State saver failed: " + str(e))
