@@ -132,7 +132,7 @@ class SrGuiChangeControllers(Plugin):
         except rospy.ServiceException as err:
             error = "Couldn't get list of controllers from controller_manager/list_controllers service"
             QMessageBox.warning(self._widget, "No Controllers Found", error)
-            raise Exception(error + ". Error: " + err)
+            rospy.logerr(error + ". Error: " + err)
 
         running_controllers = [c for c in resp1.controller if c.state == "running"]
 
@@ -221,7 +221,7 @@ class SrGuiChangeControllers(Plugin):
             else:
                 error = "Could not change {} control.".format(robot)
                 QMessageBox.warning(self._widget, "Control Not Changed!", error)
-                raise Exception(error)
+                rospy.logerr((error)
 
     def _check_arm_mode(self, robot, buttons):
         if buttons[0].isChecked():
