@@ -133,6 +133,7 @@ class SrGuiChangeControllers(Plugin):
             error = "Couldn't get list of controllers from controller_manager/list_controllers service"
             QMessageBox.warning(self._widget, "No Controllers Found", error)
             rospy.logerr(error + ". Error: " + err)
+            return
 
         running_controllers = [c for c in resp1.controller if c.state == "running"]
 
