@@ -58,53 +58,53 @@ class SrGuiChangeControllers(Plugin):
         context.add_widget(self._widget)
 
         self.robot_names = ["rh_", "lh_", "ra_", "la_"]
-        self.avaliable_controller_groups = self.find_active_control_groups()
+        self._controller_groups = self.find_active_control_groups()
 
-        self._rh_teach_buttons = []
-        self._lh_teach_buttons = []
-        self._ra_teach_buttons = []
-        self._la_teach_buttons = []
+        self._rh_control_buttons = []
+        self._lh_control_buttons = []
+        self._ra_control_buttons = []
+        self._la_control_buttons = []
 
-        if 'rh_' not in self.avaliable_controller_groups:
+        if 'rh_' not in self._controller_groups:
             self._widget.rh_group.setDisabled(True)
         else:
             self._widget.rh_traj.setIcon(self.CONTROLLER_OFF_ICON)
             self._widget.rh_traj.toggled.connect(
                 self.teach_mode_button_toggled_rh)
-            self._rh_teach_buttons.append(self._widget.rh_traj)
+            self._rh_control_buttons.append(self._widget.rh_traj)
 
             self._widget.rh_pos.setIcon(self.CONTROLLER_OFF_ICON)
             self._widget.rh_pos.toggled.connect(
                 self.teach_mode_button_toggled_rh)
-            self._rh_teach_buttons.append(self._widget.rh_pos)
+            self._rh_control_buttons.append(self._widget.rh_pos)
 
             self._widget.rh_teach.setIcon(self.CONTROLLER_OFF_ICON)
             self._widget.rh_teach.toggled.connect(
                 self.teach_mode_button_toggled_rh)
-            self._rh_teach_buttons.append(self._widget.rh_teach)
+            self._rh_control_buttons.append(self._widget.rh_teach)
             # hide teach mode if arm...
-            if 'ra_' in self.avaliable_controller_groups:
+            if 'ra_' in self._controller_groups:
                 self._widget.rh_teach.hide()
 
-        if 'lh_' not in self.avaliable_controller_groups:
+        if 'lh_' not in self._controller_groups:
             self._widget.lh_group.setDisabled(True)
         else:
             self._widget.lh_traj.setIcon(self.CONTROLLER_OFF_ICON)
             self._widget.lh_traj.toggled.connect(
                 self.teach_mode_button_toggled_lh)
-            self._lh_teach_buttons.append(self._widget.lh_traj)
+            self._lh_control_buttons.append(self._widget.lh_traj)
 
             self._widget.lh_pos.setIcon(self.CONTROLLER_OFF_ICON)
             self._widget.lh_pos.toggled.connect(
                 self.teach_mode_button_toggled_lh)
-            self._lh_teach_buttons.append(self._widget.lh_pos)
+            self._lh_control_buttons.append(self._widget.lh_pos)
 
             self._widget.lh_teach.setIcon(self.CONTROLLER_OFF_ICON)
             self._widget.lh_teach.toggled.connect(
                 self.teach_mode_button_toggled_lh)
-            self._lh_teach_buttons.append(self._widget.lh_teach)
+            self._lh_control_buttons.append(self._widget.lh_teach)
             # hide teach mode if arm...
-            if 'la_' in self.avaliable_controller_groups:
+            if 'la_' in self._controller_groups:
                 self._widget.lh_teach.hide()
 
         # TODO: add buttons when more controller modes are available for arms.
@@ -116,23 +116,23 @@ class SrGuiChangeControllers(Plugin):
 
     def find_active_control_groups(self):
         joint_states = rospy.wait_for_message('/joint_states', JointState)
-        avaliable_robot_names = []
+        _robot_names = []
         for robot_name in self.robot_names:
             for joint in joint_states.name:
                 if joint.startswith(robot_name):
-                    if robot_name not in avaliable_robot_names:
-                        avaliable_robot_names.append(robot_name)
-        return avaliable_robot_names
+                    if robot_name not in _robot_names:
+                        _robot_names.append(robot_name)
+        return _robot_names
 
     def confirm_current_control(self):
         list_controllers = rospy.ServiceProxy(
             'controller_manager/list_controllers', ListControllers)
         try:
             resp1 = list_controllers()
-        except rospy.ServiceException:
-            rospy.logerr(
-                "Couldn't get list of controllers from controller_manager/list_controllers service")
-            return
+        except rospy.ServiceException as err:
+            error = "Couldn't get list of controllers from controller_manager/list_controllers service"
+            QMessageBox.warning(self._widget, "No controllers Found", error)
+            raise Exception(error + ". Error: " + err)
 
         running_controllers = [c for c in resp1.controller if c.state == "running"]
 
@@ -161,48 +161,48 @@ class SrGuiChangeControllers(Plugin):
 
     def update_current_controller_field(self, ctrl_type, robot_name):
         if "rh_" == robot_name:
-            for button in range(len(self._rh_teach_buttons)):
+            for button in range(len(self._rh_control_buttons)):
                 if button == ctrl_type:
-                    self._rh_teach_buttons[button].setIcon(self.CONTROLLER_ON_ICON)
+                    self._rh_control_buttons[button].setIcon(self.CONTROLLER_ON_ICON)
                 else:
-                    self._rh_teach_buttons[button].setIcon(self.CONTROLLER_OFF_ICON)
+                    self._rh_control_buttons[button].setIcon(self.CONTROLLER_OFF_ICON)
         elif "lh_" == robot_name:
-            for button in range(len(self._lh_teach_buttons)):
+            for button in range(len(self._lh_control_buttons)):
                 if button == ctrl_type:
-                    self._lh_teach_buttons[button].setIcon(self.CONTROLLER_ON_ICON)
+                    self._lh_control_buttons[button].setIcon(self.CONTROLLER_ON_ICON)
                 else:
-                    self._lh_teach_buttons[button].setIcon(self.CONTROLLER_OFF_ICON)
+                    self._lh_control_buttons[button].setIcon(self.CONTROLLER_OFF_ICON)
         elif "ra_" == robot_name and ctrl_type != 2:
-            for button in range(len(self._ra_teach_buttons)):
+            for button in range(len(self._ra_control_buttons)):
                 if button == ctrl_type:
-                    self._ra_teach_buttons[button].setIcon(self.CONTROLLER_ON_ICON)
+                    self._ra_control_buttons[button].setIcon(self.CONTROLLER_ON_ICON)
                 else:
-                    self._ra_teach_buttons[button].setIcon(self.CONTROLLER_OFF_ICON)
+                    self._ra_control_buttons[button].setIcon(self.CONTROLLER_OFF_ICON)
         elif "la_" == robot_name and ctrl_type != 2:
-            for button in range(len(self._la_teach_buttons)):
+            for button in range(len(self._la_control_buttons)):
                 if button == ctrl_type:
-                    self._la_teach_buttons[button].setIcon(self.CONTROLLER_ON_ICON)
+                    self._la_control_buttons[button].setIcon(self.CONTROLLER_ON_ICON)
                 else:
-                    self._la_teach_buttons[button].setIcon(self.CONTROLLER_OFF_ICON)
+                    self._la_control_buttons[button].setIcon(self.CONTROLLER_OFF_ICON)
         else:
             rospy.logerr("Unknown robot name: {}".format(robot_name))
             return
 
     def teach_mode_button_toggled_rh(self, checked):
         self.teach_mode_button_toggled(
-            checked, "right_hand", self._rh_teach_buttons)
+            checked, "right_hand", self._rh_control_buttons)
 
     def teach_mode_button_toggled_lh(self, checked):
         self.teach_mode_button_toggled(
-            checked, "left_hand", self._lh_teach_buttons)
+            checked, "left_hand", self._lh_control_buttons)
 
     def teach_mode_button_toggled_ra(self, checked):
         self.teach_mode_button_toggled(
-            checked, "right_arm", self._ra_teach_buttons)
+            checked, "right_arm", self._ra_control_buttons)
 
     def teach_mode_button_toggled_la(self, checked):
         self.teach_mode_button_toggled(
-            checked, "left_arm", self._la_teach_buttons)
+            checked, "left_arm", self._la_control_buttons)
 
     def teach_mode_button_toggled(self, checked, robot, buttons):
         if checked:
@@ -215,8 +215,13 @@ class SrGuiChangeControllers(Plugin):
                 return
             rospy.loginfo("Changing robot {} to mode {}".format(robot, self.modes_str[mode]))
             changed_control = self.change_teach_mode(mode, robot)
+
             if changed_control:
                 self.confirm_current_control()
+            else:
+                error = "Could not change {} control.".format(robot)
+                QMessageBox.warning(self._widget, "Control Not Changed!", error)
+                raise Exception(error)
 
     def _check_arm_mode(self, robot, buttons):
         if buttons[0].isChecked():
