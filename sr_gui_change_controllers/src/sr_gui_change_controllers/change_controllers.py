@@ -26,7 +26,8 @@ import rospy
 import rospkg
 from controller_manager_msgs.srv import ListControllers
 from sensor_msgs.msg import JointState
-from sr_robot_msgs.srv import RobotTeachMode, RobotTeachModeRequest, RobotTeachModeResponse
+from sr_robot_msgs.srv import RobotTeachMode, RobotTeachModeRequest, RobotTeachModeResponse, ChangeControlType
+from sr_robot_msgs.msg import ControlType
 from sr_utilities.hand_finder import HandFinder
 
 
@@ -46,7 +47,7 @@ class SrGuiChangeControllers(Plugin):
 
         hand_finder = HandFinder()
         hand_e = hand_finder.hand_e_available()
-        self.modes_str = ["TRAJECTORY_MODE", "TEACH_MODE", "POSITION_MODE", "GRASP_MODE"]
+        self.modes_str = ["TRAJECTORY_MODE", "TEACH_MODE", "POSITION_MODE", "DIRECT_PWM_MODE"]
 
         self._publisher = None
         self._widget = QWidget()
@@ -82,9 +83,15 @@ class SrGuiChangeControllers(Plugin):
             self._widget.rh_teach.toggled.connect(
                 self.teach_mode_button_toggled_rh)
             self._rh_control_buttons.append(self._widget.rh_teach)
+
+            self._widget.rh_pwm.setIcon(self.CONTROLLER_OFF_ICON)
+            self._widget.rh_pwm.toggled.connect(
+                self.teach_mode_button_toggled_rh)
+            self._rh_control_buttons.append(self._widget.rh_pwm)
             # hide teach mode if arm...
             if 'ra_' in self._controller_groups:
                 self._widget.rh_teach.hide()
+                self._widget.rh_pwm.hide()
 
         if 'lh_' not in self._controller_groups:
             self._widget.lh_group.setDisabled(True)
@@ -103,9 +110,15 @@ class SrGuiChangeControllers(Plugin):
             self._widget.lh_teach.toggled.connect(
                 self.teach_mode_button_toggled_lh)
             self._lh_control_buttons.append(self._widget.lh_teach)
+
+            self._widget.lh_pwm.setIcon(self.CONTROLLER_OFF_ICON)
+            self._widget.lh_pwm.toggled.connect(
+                self.teach_mode_button_toggled_lh)
+            self._lh_control_buttons.append(self._widget.lh_pwm)
             # hide teach mode if arm...
             if 'la_' in self._controller_groups:
                 self._widget.lh_teach.hide()
+                self._widget.lh_pwm.hide()
 
         # TODO: add buttons when more controller modes are available for arms.
         self._widget.ra_group.hide()
@@ -153,7 +166,25 @@ class SrGuiChangeControllers(Plugin):
                         current_robot_control[robot_name] = 0
                         break
                     elif "effort_controller" in controller.name:
-                        current_robot_control[robot_name] = 2
+                        if "h_" in robot_name:
+                            srv_path = '/sr_hand_robot/{}/change_control_type'.format(robot_name[:2])
+                            query_control_type = rospy.ServiceProxy(srv_path, ChangeControlType)
+                            try:
+                                change_type_msg = ChangeControlType()
+                                change_type_msg.control_type = ControlType.QUERY
+                                resp1 = query_control_type(change_type_msg)
+
+                                if resp1.result.control_type == 0:
+                                    current_robot_control[robot_name] = 3
+                                elif resp1.result.control_type == 1:
+                                    current_robot_control[robot_name] = 2
+                            except rospy.ServiceException as err:
+                                error = "Couldn't get control type from {} service".format(srv_path)
+                                QMessageBox.warning(self._widget, "No Control Type Found", error)
+                                rospy.logerr(error + ". Error: " + err)
+                                return
+                        else:
+                            current_robot_control[robot_name] = 2
                         break
 
         for robot_name, control in current_robot_control.items():
@@ -173,13 +204,13 @@ class SrGuiChangeControllers(Plugin):
                     self._lh_control_buttons[button].setIcon(self.CONTROLLER_ON_ICON)
                 else:
                     self._lh_control_buttons[button].setIcon(self.CONTROLLER_OFF_ICON)
-        elif "ra_" == robot_name and ctrl_type != 2:
+        elif "ra_" == robot_name and ctrl_type < 2:
             for button in range(len(self._ra_control_buttons)):
                 if button == ctrl_type:
                     self._ra_control_buttons[button].setIcon(self.CONTROLLER_ON_ICON)
                 else:
                     self._ra_control_buttons[button].setIcon(self.CONTROLLER_OFF_ICON)
-        elif "la_" == robot_name and ctrl_type != 2:
+        elif "la_" == robot_name and ctrl_type < 2:
             for button in range(len(self._la_control_buttons)):
                 if button == ctrl_type:
                     self._la_control_buttons[button].setIcon(self.CONTROLLER_ON_ICON)
@@ -241,6 +272,8 @@ class SrGuiChangeControllers(Plugin):
             mode = RobotTeachModeRequest.POSITION_MODE
         elif buttons[2].isChecked():
             mode = RobotTeachModeRequest.TEACH_MODE
+        elif buttons[3].isChecked():
+            mode = RobotTeachModeRequest.DIRECT_PWM_MODE
         else:
             rospy.logerr("None of the buttons checked for robot %s", robot)
             return
@@ -260,7 +293,10 @@ class SrGuiChangeControllers(Plugin):
                   "The output of the host side PID controller is sent to the motor " + \
                   "as a PWM demand. No effort controller is used for position control.\n" + \
                   "Teach Mode: No control is implemented on the host. The Effort " + \
-                  "demand is sent to the motor which implements it using a 5kHz control loop."
+                  "demand is sent to the motor which implements it using a 5kHz control loop.\n" + \
+                  "Direct PWM Commands: This is used for basic position control, " + \
+                  "and is used by default on a new hand. The PWM demand value is sent " + \
+                  "straight to the motor, unless there is a safety cutout."
         msg = QMessageBox()
         msg.setWindowTitle("Information")
         msg.setIcon(QMessageBox().Information)
@@ -276,7 +312,7 @@ class SrGuiChangeControllers(Plugin):
         req = RobotTeachModeRequest()
         req.teach_mode = mode
         req.robot = robot
-        modes_str = ["TRAJECTORY_MODE", "TEACH_MODE", "POSITION_MODE", "GRASP_MODE"]
+        modes_str = ["TRAJECTORY_MODE", "TEACH_MODE", "POSITION_MODE", "DIRECT_PWM_MODE"]
         try:
             resp = teach_mode_client(req)
             if resp.result == RobotTeachModeResponse.ERROR:
@@ -287,6 +323,6 @@ class SrGuiChangeControllers(Plugin):
                 rospy.loginfo(
                     "Changed robot {} to mode {} Result = {}".format(robot, modes_str[mode], resp.result))
                 return True
-        except rospy.ServiceException:
-            rospy.logerr("Failed to call service teach_mode")
+        except rospy.ServiceException as err:
+            rospy.logerr("Failed to call service teach_mode: {}".format(err))
             return False

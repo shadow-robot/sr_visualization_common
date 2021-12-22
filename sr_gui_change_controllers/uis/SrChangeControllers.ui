@@ -56,21 +56,35 @@
             <item>
              <widget class="QRadioButton" name="rh_traj">
               <property name="text">
-               <string>Trajectory ctrl</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QRadioButton" name="rh_teach">
-              <property name="text">
-               <string>Teach Mode</string>
+               <string>Trajectory control</string>
               </property>
              </widget>
             </item>
             <item>
              <widget class="QRadioButton" name="rh_pos">
               <property name="text">
-               <string>Position ctrl</string>
+               <string>Position control</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="rh_teach">
+              <property name="text">
+               <string>Teach mode</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="rh_pwm">
+              <property name="text">
+               <string>Direct PWM commands</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="rh_stop">
+              <property name="text">
+               <string>Stop all control</string>
               </property>
              </widget>
             </item>
@@ -99,21 +113,28 @@
             <item>
              <widget class="QRadioButton" name="ra_traj">
               <property name="text">
-               <string>Trajectory ctrl</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QRadioButton" name="radioButton">
-              <property name="text">
-               <string>Teach Mode</string>
+               <string>Trajectory control</string>
               </property>
              </widget>
             </item>
             <item>
              <widget class="QRadioButton" name="ra_pos">
               <property name="text">
-               <string>Position ctrl</string>
+               <string>Position control</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="ra_stop_2">
+              <property name="text">
+               <string>Teach Mode</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="ra_stop">
+              <property name="text">
+               <string>Stop all control</string>
               </property>
              </widget>
             </item>
@@ -142,21 +163,35 @@
             <item>
              <widget class="QRadioButton" name="lh_traj">
               <property name="text">
-               <string>Trajectory ctrl</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QRadioButton" name="lh_teach">
-              <property name="text">
-               <string>Teach Mode</string>
+               <string>Trajectory control</string>
               </property>
              </widget>
             </item>
             <item>
              <widget class="QRadioButton" name="lh_pos">
               <property name="text">
-               <string>Position ctrl</string>
+               <string>Position control</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="lh_teach">
+              <property name="text">
+               <string>Teach mode</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="lh_pwm">
+              <property name="text">
+               <string>Direct PWM commands</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="lh_stop">
+              <property name="text">
+               <string>Stop all control</string>
               </property>
              </widget>
             </item>
@@ -185,21 +220,28 @@
             <item>
              <widget class="QRadioButton" name="la_traj">
               <property name="text">
-               <string>Trajectory ctrl</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QRadioButton" name="la_teach">
-              <property name="text">
-               <string>Teach Mode</string>
+               <string>Trajectory control</string>
               </property>
              </widget>
             </item>
             <item>
              <widget class="QRadioButton" name="la_pos">
               <property name="text">
-               <string>Position ctrl</string>
+               <string>Position control</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="la_teach">
+              <property name="text">
+               <string>Teach mode</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="la_stop">
+              <property name="text">
+               <string>Stop all control</string>
               </property>
              </widget>
             </item>
