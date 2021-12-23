@@ -47,8 +47,6 @@ class SrGuiChangeControllers(Plugin):
         super(SrGuiChangeControllers, self).__init__(context)
         self.setObjectName('SrGuiTeachMode')
 
-        hand_finder = HandFinder()
-        hand_e = hand_finder.hand_e_available()
         self.modes_str = ["TRAJECTORY_MODE", "TEACH_MODE", "POSITION_MODE", "DIRECT_PWM_MODE"]
 
         self._publisher = None

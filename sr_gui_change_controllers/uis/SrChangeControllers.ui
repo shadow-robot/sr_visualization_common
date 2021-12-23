@@ -268,7 +268,7 @@
         </size>
        </property>
        <property name="text">
-        <string>NOTE: If all options of control are red, other controllers are running on the robot which are unsuported by this GUI.</string>
+        <string>NOTE: If all options of control are red, no controller is running OR other controllers are running on the robot which are unsuported by this GUI.</string>
        </property>
       </widget>
      </item>
