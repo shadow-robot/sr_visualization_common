@@ -89,9 +89,8 @@ class SrGuiChangeControllers(Plugin):
                 self.teach_mode_button_toggled_rh)
             self._rh_control_buttons.append(self._widget.rh_pwm)
 
-            self._widget.rh_stop.clicked.connect(lambda:
-                                                 self.stop_all_running_controllers(
-                                                     "rh_", "right hand"))
+            self._widget.rh_stop.clicked.connect(
+                lambda: self.stop_all_running_controllers("rh_", "right hand"))
 
             # hide teach mode if arm...
             if 'ra_' in self._controller_groups:
@@ -121,9 +120,8 @@ class SrGuiChangeControllers(Plugin):
                 self.teach_mode_button_toggled_lh)
             self._lh_control_buttons.append(self._widget.lh_pwm)
 
-            self._widget.lh_stop.clicked.connect(lambda:
-                                                 self.stop_all_running_controllers(
-                                                     "lh_", "left hand"))
+            self._widget.lh_stop.clicked.connect(
+                lambda: self.stop_all_running_controllers("lh_", "left hand"))
 
             # hide teach mode if arm...
             if 'la_' in self._controller_groups:
