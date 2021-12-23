@@ -89,7 +89,7 @@ class SrGuiChangeControllers(Plugin):
                 self.teach_mode_button_toggled_rh)
             self._rh_control_buttons.append(self._widget.rh_pwm)
 
-            self._widget.rh_stop.clicked.connect(lambda: 
+            self._widget.rh_stop.clicked.connect(lambda:
                 self.stop_all_running_controllers("rh_", "right hand"))
 
             # hide teach mode if arm...
@@ -120,9 +120,9 @@ class SrGuiChangeControllers(Plugin):
                 self.teach_mode_button_toggled_lh)
             self._lh_control_buttons.append(self._widget.lh_pwm)
 
-            self._widget.lh_stop.clicked.connect(lambda: 
+            self._widget.lh_stop.clicked.connect(lambda:
                 self.stop_all_running_controllers("lh_", "left hand"))
-                
+
             # hide teach mode if arm...
             if 'la_' in self._controller_groups:
                 self._widget.lh_teach.hide()
@@ -334,7 +334,7 @@ class SrGuiChangeControllers(Plugin):
                 controllers_to_start, controllers_to_stop, SwitchControllerRequest.BEST_EFFORT, False, 0.0)
         except rospy.ServiceException as err:
             error = "Failed to unload all controllers for {}.".format(robot) + \
-            "from '/controller_manager/unload_controller' service"
+                    "from '/controller_manager/unload_controller' service"
             QMessageBox.warning(self._widget, "Couldn't Unload Controllers", error)
             rospy.logerr(error + ". Error: " + err)
             return
