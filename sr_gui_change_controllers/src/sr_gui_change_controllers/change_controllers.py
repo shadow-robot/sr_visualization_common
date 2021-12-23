@@ -24,9 +24,11 @@ from QtWidgets import QWidget, QMessageBox
 from QtGui import QIcon
 import rospy
 import rospkg
-from controller_manager_msgs.srv import ListControllers
+from controller_manager_msgs.srv import (ListControllers, SwitchController,
+                                         SwitchControllerRequest)
 from sensor_msgs.msg import JointState
-from sr_robot_msgs.srv import RobotTeachMode, RobotTeachModeRequest, RobotTeachModeResponse, ChangeControlType
+from sr_robot_msgs.srv import (RobotTeachMode, RobotTeachModeRequest,
+                               RobotTeachModeResponse, ChangeControlType)
 from sr_robot_msgs.msg import ControlType
 from sr_utilities.hand_finder import HandFinder
 
@@ -88,6 +90,10 @@ class SrGuiChangeControllers(Plugin):
             self._widget.rh_pwm.toggled.connect(
                 self.teach_mode_button_toggled_rh)
             self._rh_control_buttons.append(self._widget.rh_pwm)
+
+            self._widget.rh_stop.clicked.connect(lambda: 
+                self.stop_all_running_controllers("rh_", "right hand"))
+
             # hide teach mode if arm...
             if 'ra_' in self._controller_groups:
                 self._widget.rh_teach.hide()
@@ -115,6 +121,10 @@ class SrGuiChangeControllers(Plugin):
             self._widget.lh_pwm.toggled.connect(
                 self.teach_mode_button_toggled_lh)
             self._lh_control_buttons.append(self._widget.lh_pwm)
+
+            self._widget.lh_stop.clicked.connect(lambda: 
+                self.stop_all_running_controllers("lh_", "left hand"))
+                
             # hide teach mode if arm...
             if 'la_' in self._controller_groups:
                 self._widget.lh_teach.hide()
@@ -137,7 +147,7 @@ class SrGuiChangeControllers(Plugin):
                         _robot_names.append(robot_name)
         return _robot_names
 
-    def confirm_current_control(self):
+    def get_running_controllers(self):
         list_controllers = rospy.ServiceProxy(
             'controller_manager/list_controllers', ListControllers)
         try:
@@ -149,6 +159,11 @@ class SrGuiChangeControllers(Plugin):
             return
 
         running_controllers = [c for c in resp1.controller if c.state == "running"]
+
+        return running_controllers
+
+    def confirm_current_control(self):
+        running_controllers = self.get_running_controllers()
 
         current_robot_control = {
             'rh_': None,
@@ -303,6 +318,33 @@ class SrGuiChangeControllers(Plugin):
         msg.setText(message)
         msg.setStandardButtons(QMessageBox.Ok)
         msg.exec_()
+
+    def stop_all_running_controllers(self, robot_prefix, robot):
+        running_controllers = self.get_running_controllers()
+
+        switch_controllers = rospy.ServiceProxy(
+            'controller_manager/switch_controller', SwitchController)
+
+        controllers_to_start = []
+        controllers_to_stop = []
+        for controller in running_controllers:
+            if robot_prefix in controller.name:
+                controllers_to_stop.append(controller.name)
+
+        try:
+            resp1 = switch_controllers(
+                controllers_to_start, controllers_to_stop, SwitchControllerRequest.BEST_EFFORT, False, 0.0)
+        except rospy.ServiceException as err:
+            error = "Failed to unload all controllers for {}.".format(robot) + \
+            "from '/controller_manager/unload_controller' service"
+            QMessageBox.warning(self._widget, "Couldn't Unload Controllers", error)
+            rospy.logerr(error + ". Error: " + err)
+            return
+
+        info_msg = "All controllers stopped for {}.".format(robot)
+        QMessageBox.information(self._widget, "Stop Controllers", info_msg)
+        rospy.loginfo(info_msg)
+        self.confirm_current_control()
 
     @staticmethod
     def change_teach_mode(mode, robot):
