@@ -156,7 +156,10 @@ class SrGuiChangeControllers(Plugin):
             rospy.logerr(error + ". Error: " + err)
             return
 
-        running_controllers = [c for c in resp1.controller if c.state == "running"]
+        # Confirm all running controllers for the controls in this GUI
+        running_controllers = [c for c in resp1.controller
+                               if c.state == "running" and
+                               "tactile_sensor" not in c.name]
 
         return running_controllers
 
@@ -180,7 +183,11 @@ class SrGuiChangeControllers(Plugin):
                         break
                     elif "effort_controller" in controller.name:
                         if "h_" in robot_name:
-                            srv_path = '/sr_hand_robot/{}/change_control_type'.format(robot_name[:2])
+                            if "rh_" and "lh_" in self._controller_groups:
+                                hand_id = 'sr_bimanual_hands_robot'
+                            else:
+                                hand_id = 'sr_hand_robot'
+                            srv_path = '/{}/{}/change_control_type'.format(hand_id, robot_name[:2])
                             query_control_type = rospy.ServiceProxy(srv_path, ChangeControlType)
                             try:
                                 change_type_msg = ChangeControlType()
@@ -200,9 +207,10 @@ class SrGuiChangeControllers(Plugin):
                             current_robot_control[robot_name] = 2
                         break
 
+        rospy.logerr("current control: {}".format(current_robot_control))
         for robot_name, control in current_robot_control.items():
-            if control is not None:
-                self.update_current_controller_field(control, robot_name)
+            # if control is not None:
+            self.update_current_controller_field(control, robot_name)
 
     def update_current_controller_field(self, ctrl_type, robot_name):
         if "rh_" == robot_name:
@@ -217,13 +225,14 @@ class SrGuiChangeControllers(Plugin):
                     self._lh_control_buttons[button].setIcon(self.CONTROLLER_ON_ICON)
                 else:
                     self._lh_control_buttons[button].setIcon(self.CONTROLLER_OFF_ICON)
-        elif "ra_" == robot_name and ctrl_type < 2:
+        # TODO: confirm control types when more controller modes are available for arms.
+        elif "ra_" == robot_name:
             for button in range(len(self._ra_control_buttons)):
                 if button == ctrl_type:
                     self._ra_control_buttons[button].setIcon(self.CONTROLLER_ON_ICON)
                 else:
                     self._ra_control_buttons[button].setIcon(self.CONTROLLER_OFF_ICON)
-        elif "la_" == robot_name and ctrl_type < 2:
+        elif "la_" == robot_name:
             for button in range(len(self._la_control_buttons)):
                 if button == ctrl_type:
                     self._la_control_buttons[button].setIcon(self.CONTROLLER_ON_ICON)
