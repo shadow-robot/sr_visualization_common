@@ -207,7 +207,6 @@ class SrGuiChangeControllers(Plugin):
                             current_robot_control[robot_name] = 2
                         break
 
-        rospy.logerr("current control: {}".format(current_robot_control))
         for robot_name, control in current_robot_control.items():
             # if control is not None:
             self.update_current_controller_field(control, robot_name)
