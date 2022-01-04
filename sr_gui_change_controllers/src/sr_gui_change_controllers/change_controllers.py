@@ -183,7 +183,7 @@ class SrGuiChangeControllers(Plugin):
                         break
                     elif "effort_controller" in controller.name:
                         if "h_" in robot_name:
-                            if "rh_" and "lh_" in self._controller_groups:
+                            if all(hand in self._controller_groups for hand in ["rh_", "lh_"]):
                                 hand_id = 'sr_bimanual_hands_robot'
                             else:
                                 hand_id = 'sr_hand_robot'
@@ -317,7 +317,8 @@ class SrGuiChangeControllers(Plugin):
                   "demand is sent to the motor which implements it using a 5kHz control loop.\n" + \
                   "Direct PWM Commands: This is used for basic position control, " + \
                   "and is used by default on a new hand. The PWM demand value is sent " + \
-                  "straight to the motor, unless there is a safety cutout."
+                  "straight to the motor, unless there is a safety cutout.\n" + \
+                  "NOTE: Please allow some time between control changes!"
         msg = QMessageBox()
         msg.setWindowTitle("Information")
         msg.setIcon(QMessageBox().Information)
