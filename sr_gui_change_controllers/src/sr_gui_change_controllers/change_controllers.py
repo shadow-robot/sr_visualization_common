@@ -319,9 +319,8 @@ class SrGuiChangeControllers(Plugin):
                   "as a PWM demand. No effort controller is used for position control.\n" + \
                   "Teach Mode: No control is implemented on the host. The Effort " + \
                   "demand is sent to the motor which implements it using a 5kHz control loop.\n" + \
-                  "Direct PWM Commands: This is used for basic position control, " + \
-                  "and is used by default on a new hand. The PWM demand value is sent " + \
-                  "straight to the motor, unless there is a safety cutout.\n" + \
+                  "Direct PWM Commands: The PWM demand value is sent directly to the motor, " + \
+                  "unless there is a safety cutout.\n" + \
                   "NOTE: Please allow some time between control changes!"
         msg = QMessageBox()
         msg.setWindowTitle("Information")
