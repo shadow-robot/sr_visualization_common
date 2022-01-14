@@ -394,7 +394,7 @@ class SrGuiJointSlider(Plugin):
                 rospy.logwarn(
                     "Parameters for controller %s not found", controller.name)
                 continue
-        
+
         self.arm_joints_displayed_warning(joints)
 
         return joints
@@ -406,7 +406,7 @@ class SrGuiJointSlider(Plugin):
                 if arm_prefix in joint.name:
                     message = "Joints filtered contain arm joints. Please take caution when " + \
                               "moving arm joints as a small movement with the slider can permit " + \
-                              "a large movement on the robot!\n
+                              "a large movement on the robot!\n" + \
                               "We advise to use plan and then execute from RViz motion planning instead."
                     msg = QMessageBox()
                     msg.setWindowTitle("Warning!!")
