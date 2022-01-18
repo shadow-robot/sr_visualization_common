@@ -204,7 +204,6 @@ class SrGuiChangeControllers(Plugin):
                                     current_robot_control[robot_name] = self.CONTROL['DIRECT_PWM_CONTROL']
                                 elif current_control_type.result.control_type == ControlType.FORCE:
                                     current_robot_control[robot_name] = self.CONTROL['TEACH_MODE']
-
                             except rospy.ServiceException as err:
                                 error = "Couldn't get control type from {} service".format(srv_path)
                                 QMessageBox.warning(self._widget, "No Control Type Found", error)
