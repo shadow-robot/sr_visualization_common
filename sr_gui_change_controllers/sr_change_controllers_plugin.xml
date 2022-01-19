@@ -1,5 +1,5 @@
 <library path="src">
-  <class name="Change Controllers" type="sr_gui_change_controllers.change_controllers.SrGuiChangeControllers" base_class_type="rqt_gui_py::Plugin">
+  <class name="Change Robot Control Mode" type="sr_gui_change_controllers.change_controllers.SrGuiChangeControllers" base_class_type="rqt_gui_py::Plugin">
     <description>
       A plugin to switch between the different control types.
     </description>
@@ -7,10 +7,10 @@
       <group>
         <label>Shadow Robot</label>
       </group>
-      <label>Change Controllers</label>
+      <label>Change Robot Control Mode</label>
       <icon type="file">../sr_visualization_common_icons/icons/hand.png</icon>
       <statustip>
-        A plugin to switch between the different control types.
+        A plugin to switch between the different robot control types.
       </statustip>
     </qtgui>
   </class>

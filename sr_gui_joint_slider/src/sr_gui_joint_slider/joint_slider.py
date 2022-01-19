@@ -106,6 +106,7 @@ class SrGuiJointSlider(Plugin):
         self._widget.joint_name_filter_edit.setText(self.hand_prefix)
 
         self.on_reload_button_cicked_()
+        self._widget.information_btn.clicked.connect(self.display_information)
 
     def _get_hand_prefix(self):
         hand_finder = HandFinder()
@@ -225,7 +226,8 @@ class SrGuiJointSlider(Plugin):
         selection_slider_ui_file = os.path.join(
             rospkg.RosPack().get_path('sr_gui_joint_slider'), 'uis', 'SelectionSlider.ui')
         self.selection_slider = EtherCATSelectionSlider(
-            "Change sel.", 0, 100, selection_slider_ui_file, self, self._widget.scrollAreaWidgetContents)
+            "Change Selected", 0, 100, selection_slider_ui_file,
+            self, self._widget.scrollAreaWidgetContents)
 
         self.selection_slider.setMaximumWidth(100)
         self._widget.horizontalLayout.addWidget(self.selection_slider)
@@ -393,7 +395,26 @@ class SrGuiJointSlider(Plugin):
                     "Parameters for controller %s not found", controller.name)
                 continue
 
+        self.arm_joints_displayed_warning(joints)
+
         return joints
+
+    def arm_joints_displayed_warning(self, joints):
+        arm_prefixes = ['ra_', 'la_']
+        for joint in joints:
+            for arm_prefix in arm_prefixes:
+                if arm_prefix in joint.name:
+                    message = "Joints filtered contain arm joints. Please take caution when " + \
+                              "moving arm joints as a small movement with the slider can permit " + \
+                              "a large movement on the robot!\n" + \
+                              "We advise to use plan and then execute from RViz motion planning instead."
+                    msg = QMessageBox()
+                    msg.setWindowTitle("Warning!!")
+                    msg.setIcon(QMessageBox().Warning)
+                    msg.setText(message)
+                    msg.setStandardButtons(QMessageBox.Ok)
+                    msg.exec_()
+                    return
 
     def _trajectory_state_cb(self, msg, index):
         if not self.pause_subscriber:
@@ -407,3 +428,24 @@ class SrGuiJointSlider(Plugin):
 
             for cb in self.trajectory_state_slider_cb[index]:  # call the callbacks of the sliders in the list
                 cb(msg)
+
+    def display_information(self, message):
+        message = "Moving any slider will cause the corresponding joint on the hand to move.\n" + \
+                  "You have to start the hand in either position control or teach mode. " + \
+                  "If the control is changed, reload the plugin to make sure that the " + \
+                  "sliders correspond to the control that is running at this moment.\n" + \
+                  "The robot description field allows you to select the name of the robot " + \
+                  "description to be used by the joint sliders.\n" + \
+                  "The Joint name filter filters the sliders to show only joints that " + \
+                  "contain the joint name specified in the text box.\n" + \
+                  "The selection button at the bottom of each joint slider allows you to " + \
+                  "select and move multiple joints at once. The selected joints can then be " + \
+                  "moved by the last joint slider on the right titled “Change Selected”.\n" + \
+                  "WARNING: If you are attempting to move more than one joint slider at the " + \
+                  "same time, please ensure each of the joints are free to move."
+        msg = QMessageBox()
+        msg.setWindowTitle("Information")
+        msg.setIcon(QMessageBox().Information)
+        msg.setText(message)
+        msg.setStandardButtons(QMessageBox.Ok)
+        msg.exec_()

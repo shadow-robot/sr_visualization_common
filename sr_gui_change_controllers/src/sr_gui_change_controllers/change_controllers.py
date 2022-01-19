@@ -24,9 +24,12 @@ from QtWidgets import QWidget, QMessageBox
 from QtGui import QIcon
 import rospy
 import rospkg
-from controller_manager_msgs.srv import ListControllers
+from controller_manager_msgs.srv import (ListControllers, SwitchController,
+                                         SwitchControllerRequest)
 from sensor_msgs.msg import JointState
-from sr_robot_msgs.srv import RobotTeachMode, RobotTeachModeRequest, RobotTeachModeResponse
+from sr_robot_msgs.srv import (RobotTeachMode, RobotTeachModeRequest,
+                               RobotTeachModeResponse, ChangeControlType)
+from sr_robot_msgs.msg import ControlType
 from sr_utilities.hand_finder import HandFinder
 
 
@@ -39,14 +42,18 @@ class SrGuiChangeControllers(Plugin):
         rospkg.RosPack().get_path('sr_visualization_common_icons'), 'icons')
     CONTROLLER_ON_ICON = QIcon(os.path.join(ICON_DIR, 'green.png'))
     CONTROLLER_OFF_ICON = QIcon(os.path.join(ICON_DIR, 'red.png'))
+    CONTROL = {
+        'TRAJECTORY_CONTROL': 0,
+        'POSITION_CONTROL': 1,
+        'TEACH_MODE': 2,
+        'DIRECT_PWM_CONTROL': 3
+    }
 
     def __init__(self, context):
         super(SrGuiChangeControllers, self).__init__(context)
         self.setObjectName('SrGuiTeachMode')
 
-        hand_finder = HandFinder()
-        hand_e = hand_finder.hand_e_available()
-        self.modes_str = ["TRAJECTORY_MODE", "TEACH_MODE", "POSITION_MODE", "GRASP_MODE"]
+        self.modes_str = ["TRAJECTORY_MODE", "TEACH_MODE", "POSITION_MODE", "DIRECT_PWM_MODE"]
 
         self._publisher = None
         self._widget = QWidget()
@@ -82,9 +89,19 @@ class SrGuiChangeControllers(Plugin):
             self._widget.rh_teach.toggled.connect(
                 self.teach_mode_button_toggled_rh)
             self._rh_control_buttons.append(self._widget.rh_teach)
+
+            self._widget.rh_pwm.setIcon(self.CONTROLLER_OFF_ICON)
+            self._widget.rh_pwm.toggled.connect(
+                self.teach_mode_button_toggled_rh)
+            self._rh_control_buttons.append(self._widget.rh_pwm)
+
+            self._widget.rh_stop.clicked.connect(
+                lambda: self.stop_all_running_controllers("rh_", "right hand"))
+
             # hide teach mode if arm...
             if 'ra_' in self._controller_groups:
                 self._widget.rh_teach.hide()
+                self._widget.rh_pwm.hide()
 
         if 'lh_' not in self._controller_groups:
             self._widget.lh_group.setDisabled(True)
@@ -103,9 +120,19 @@ class SrGuiChangeControllers(Plugin):
             self._widget.lh_teach.toggled.connect(
                 self.teach_mode_button_toggled_lh)
             self._lh_control_buttons.append(self._widget.lh_teach)
+
+            self._widget.lh_pwm.setIcon(self.CONTROLLER_OFF_ICON)
+            self._widget.lh_pwm.toggled.connect(
+                self.teach_mode_button_toggled_lh)
+            self._lh_control_buttons.append(self._widget.lh_pwm)
+
+            self._widget.lh_stop.clicked.connect(
+                lambda: self.stop_all_running_controllers("lh_", "left hand"))
+
             # hide teach mode if arm...
             if 'la_' in self._controller_groups:
                 self._widget.lh_teach.hide()
+                self._widget.lh_pwm.hide()
 
         # TODO: add buttons when more controller modes are available for arms.
         self._widget.ra_group.hide()
@@ -124,18 +151,26 @@ class SrGuiChangeControllers(Plugin):
                         _robot_names.append(robot_name)
         return _robot_names
 
-    def confirm_current_control(self):
+    def get_running_controllers(self):
         list_controllers = rospy.ServiceProxy(
             'controller_manager/list_controllers', ListControllers)
         try:
-            resp1 = list_controllers()
+            controller_list = list_controllers()
         except rospy.ServiceException as err:
             error = "Couldn't get list of controllers from controller_manager/list_controllers service"
             QMessageBox.warning(self._widget, "No Controllers Found", error)
             rospy.logerr(error + ". Error: " + err)
             return
 
-        running_controllers = [c for c in resp1.controller if c.state == "running"]
+        # Confirm all running controllers for the controls in this GUI
+        running_controllers = [controller for controller in controller_list.controller
+                               if controller.state == "running" and
+                               "tactile_sensor" not in controller.name]
+
+        return running_controllers
+
+    def confirm_current_control(self):
+        running_controllers = self.get_running_controllers()
 
         current_robot_control = {
             'rh_': None,
@@ -147,18 +182,38 @@ class SrGuiChangeControllers(Plugin):
             for controller in running_controllers:
                 if robot_name in controller.name:
                     if "position_controller" in controller.name:
-                        current_robot_control[robot_name] = 1
+                        current_robot_control[robot_name] = self.CONTROL['POSITION_CONTROL']
                         break
                     elif "trajectory_controller" in controller.name:
-                        current_robot_control[robot_name] = 0
+                        current_robot_control[robot_name] = self.CONTROL['TRAJECTORY_CONTROL']
                         break
                     elif "effort_controller" in controller.name:
-                        current_robot_control[robot_name] = 2
+                        if "h_" in robot_name:
+                            if all(hand in self._controller_groups for hand in ["rh_", "lh_"]):
+                                hand_id = 'sr_bimanual_hands_robot'
+                            else:
+                                hand_id = 'sr_hand_robot'
+                            srv_path = '/{}/{}/change_control_type'.format(hand_id, robot_name[:2])
+                            query_control_type = rospy.ServiceProxy(srv_path, ChangeControlType)
+                            try:
+                                change_type_msg = ChangeControlType()
+                                change_type_msg.control_type = ControlType.QUERY
+                                current_control_type = query_control_type(change_type_msg)
+
+                                if current_control_type.result.control_type == ControlType.PWM:
+                                    current_robot_control[robot_name] = self.CONTROL['DIRECT_PWM_CONTROL']
+                                elif current_control_type.result.control_type == ControlType.FORCE:
+                                    current_robot_control[robot_name] = self.CONTROL['TEACH_MODE']
+                            except rospy.ServiceException as err:
+                                error = "Couldn't get control type from {} service".format(srv_path)
+                                QMessageBox.warning(self._widget, "No Control Type Found", error)
+                                rospy.logerr(error + ". Error: " + err)
+                                return
                         break
 
         for robot_name, control in current_robot_control.items():
-            if control is not None:
-                self.update_current_controller_field(control, robot_name)
+            # if control is not None:
+            self.update_current_controller_field(control, robot_name)
 
     def update_current_controller_field(self, ctrl_type, robot_name):
         if "rh_" == robot_name:
@@ -173,13 +228,14 @@ class SrGuiChangeControllers(Plugin):
                     self._lh_control_buttons[button].setIcon(self.CONTROLLER_ON_ICON)
                 else:
                     self._lh_control_buttons[button].setIcon(self.CONTROLLER_OFF_ICON)
-        elif "ra_" == robot_name and ctrl_type != 2:
+        # TODO: confirm control types when more controller modes are available for arms.
+        elif "ra_" == robot_name:
             for button in range(len(self._ra_control_buttons)):
                 if button == ctrl_type:
                     self._ra_control_buttons[button].setIcon(self.CONTROLLER_ON_ICON)
                 else:
                     self._ra_control_buttons[button].setIcon(self.CONTROLLER_OFF_ICON)
-        elif "la_" == robot_name and ctrl_type != 2:
+        elif "la_" == robot_name:
             for button in range(len(self._la_control_buttons)):
                 if button == ctrl_type:
                     self._la_control_buttons[button].setIcon(self.CONTROLLER_ON_ICON)
@@ -241,6 +297,8 @@ class SrGuiChangeControllers(Plugin):
             mode = RobotTeachModeRequest.POSITION_MODE
         elif buttons[2].isChecked():
             mode = RobotTeachModeRequest.TEACH_MODE
+        elif buttons[3].isChecked():
+            mode = RobotTeachModeRequest.DIRECT_PWM_MODE
         else:
             rospy.logerr("None of the buttons checked for robot %s", robot)
             return
@@ -260,13 +318,43 @@ class SrGuiChangeControllers(Plugin):
                   "The output of the host side PID controller is sent to the motor " + \
                   "as a PWM demand. No effort controller is used for position control.\n" + \
                   "Teach Mode: No control is implemented on the host. The Effort " + \
-                  "demand is sent to the motor which implements it using a 5kHz control loop."
+                  "demand is sent to the motor which implements it using a 5kHz control loop.\n" + \
+                  "Direct PWM Commands: The PWM demand value is sent directly to the motor, " + \
+                  "unless there is a safety cutout.\n" + \
+                  "NOTE: Please allow some time between control changes!"
         msg = QMessageBox()
         msg.setWindowTitle("Information")
         msg.setIcon(QMessageBox().Information)
         msg.setText(message)
         msg.setStandardButtons(QMessageBox.Ok)
         msg.exec_()
+
+    def stop_all_running_controllers(self, robot_prefix, robot):
+        running_controllers = self.get_running_controllers()
+
+        switch_controllers = rospy.ServiceProxy(
+            'controller_manager/switch_controller', SwitchController)
+
+        controllers_to_start = []
+        controllers_to_stop = []
+        for controller in running_controllers:
+            if robot_prefix in controller.name:
+                controllers_to_stop.append(controller.name)
+
+        try:
+            stop_all_controllers = switch_controllers(
+                controllers_to_start, controllers_to_stop, SwitchControllerRequest.BEST_EFFORT, False, 0.0)
+        except rospy.ServiceException as err:
+            error = "Failed to unload all controllers for {}.".format(robot) + \
+                    "from '/controller_manager/unload_controller' service"
+            QMessageBox.warning(self._widget, "Couldn't Unload Controllers", error)
+            rospy.logerr(error + ". Error: " + err)
+            return
+
+        info_msg = "All controllers stopped for {}.".format(robot)
+        QMessageBox.information(self._widget, "Stop Controllers", info_msg)
+        rospy.loginfo(info_msg)
+        self.confirm_current_control()
 
     @staticmethod
     def change_teach_mode(mode, robot):
@@ -276,7 +364,7 @@ class SrGuiChangeControllers(Plugin):
         req = RobotTeachModeRequest()
         req.teach_mode = mode
         req.robot = robot
-        modes_str = ["TRAJECTORY_MODE", "TEACH_MODE", "POSITION_MODE", "GRASP_MODE"]
+        modes_str = ["TRAJECTORY_MODE", "TEACH_MODE", "POSITION_MODE", "DIRECT_PWM_MODE"]
         try:
             resp = teach_mode_client(req)
             if resp.result == RobotTeachModeResponse.ERROR:
@@ -287,6 +375,6 @@ class SrGuiChangeControllers(Plugin):
                 rospy.loginfo(
                     "Changed robot {} to mode {} Result = {}".format(robot, modes_str[mode], resp.result))
                 return True
-        except rospy.ServiceException:
-            rospy.logerr("Failed to call service teach_mode")
+        except rospy.ServiceException as err:
+            rospy.logerr("Failed to call service teach_mode: {}".format(err))
             return False
