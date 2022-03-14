@@ -310,7 +310,7 @@ class SrGuiChangeControllers(Plugin):
                   "Simply click on a controller type, " + \
                   "and it will call a service from the controller_manager " + \
                   "to unload the currently running controller if necessary, " + \
-                  "and load the one you’ve selected.\n" + \
+                  "and load the one you've selected.\n" + \
                   "Trajectory Control: This controller allows the user to define " + \
                   "a joint space trajectory, that is a series of waypoints " + \
                   "consisting of joint positions.\n" + \
