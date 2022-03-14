@@ -66,7 +66,7 @@ class SrGuiJointSlider(Plugin):
 
     def __init__(self, context):
         super(SrGuiJointSlider, self).__init__(context)
-        self.hand_namespace = ""
+        self.hand_namespace = rospy.get_param("~shadow_hand_namespace", "")
         self.setObjectName('SrGuiJointSlider')
 
         self._robot_description_xml_root = None
