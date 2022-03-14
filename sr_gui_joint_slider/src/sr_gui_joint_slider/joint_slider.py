@@ -440,7 +440,7 @@ class SrGuiJointSlider(Plugin):
                   "contain the joint name specified in the text box.\n" + \
                   "The selection button at the bottom of each joint slider allows you to " + \
                   "select and move multiple joints at once. The selected joints can then be " + \
-                  "moved by the last joint slider on the right titled “Change Selected”.\n" + \
+                  "moved by the last joint slider on the right titled 'Change Selected'.\n" + \
                   "WARNING: If you are attempting to move more than one joint slider at the " + \
                   "same time, please ensure each of the joints are free to move."
         msg = QMessageBox()
