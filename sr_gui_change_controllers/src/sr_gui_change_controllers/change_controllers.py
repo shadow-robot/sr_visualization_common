@@ -101,7 +101,6 @@ class SrGuiChangeControllers(Plugin):
             # hide teach mode if arm...
             if 'ra_' in self._controller_groups:
                 self._widget.rh_teach.hide()
-                self._widget.rh_pwm.hide()
 
         if 'lh_' not in self._controller_groups:
             self._widget.lh_group.setDisabled(True)
@@ -132,7 +131,6 @@ class SrGuiChangeControllers(Plugin):
             # hide teach mode if arm...
             if 'la_' in self._controller_groups:
                 self._widget.lh_teach.hide()
-                self._widget.lh_pwm.hide()
 
         # TODO: add buttons when more controller modes are available for arms.
         self._widget.ra_group.hide()
