@@ -362,9 +362,9 @@ class EtherCATSelectionSlider(SelectionSlider):
             if (slider.joint.controller.controller_category == "effort")\
                     or (slider.joint.controller.controller_category == "velocity"):
                 self.slider.sliderReleased.connect(self.on_slider_released)
-                self.slider.setSliderPosition(50)
                 self.current_value = 50
-                self.target.setText(f"Tgt: {50:.1f}%")
+                self.slider.setSliderPosition(self.current_value)
+                self.target.setText(f"Tgt: {self.current_value:.1f}%")
                 break
 
     def changeValue(self, value):
@@ -388,6 +388,6 @@ class EtherCATSelectionSlider(SelectionSlider):
                         or (slider.joint.controller.controller_category == "velocity"):
                     slider.slider.setSliderPosition(0)
                     slider.changeValue(0)
-        self.slider.setSliderPosition(50)
         self.current_value = 50
-        self.target.setText(f"Tgt: {50:.1f}%")
+        self.slider.setSliderPosition(self.current_value)
+        self.target.setText(f"Tgt: {self.current_value:.1f}%")
