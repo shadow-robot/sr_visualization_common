@@ -114,7 +114,7 @@ class ExtendedSlider(QFrame):
         self.timer.start(200)
 
     def changeValue(self, value):
-        self.target.setText("Tgt: " + str(value))
+        self.target.setText(f"Tgt: {value:.1f}")
         self.sendupdate(value)
 
     def sendupdate(self, value):
@@ -191,7 +191,7 @@ class EtherCATHandSlider(ExtendedSlider):
                 if (self.joint.controller.controller_category == "position"):
                     self.slider.setSliderPosition(self.current_value)
                     self.slider.setValue(self.current_value)
-                    self.target.setText("Tgt: " + str(self.current_value))
+                    self.target.setText(f"Tgt: {self.current_value:.1f}")
                 else:
                     self.target.setText("Tgt: 0.0")
                 self.first_update_done = True
@@ -205,7 +205,7 @@ class EtherCATHandSlider(ExtendedSlider):
         if (self.joint.controller.controller_category == "position"):
             self.slider.setSliderPosition(self.current_value)
             self.slider.setValue(self.current_value)
-            self.target.setText("Tgt: " + str(self.current_value))
+            self.target.setText(f"Tgt: {self.current_value:.1f}")
 
     def set_slider_behaviour(self):
         """
@@ -271,7 +271,7 @@ class EtherCATHandTrajectorySlider(ExtendedSlider):
             if not self.first_update_done:
                 self.slider.setSliderPosition(self.current_value)
                 self.slider.setValue(self.current_value)
-                self.target.setText("Tgt: " + str(self.current_value))
+                self.target.setText(f"Tgt: {self.current_value:.1f}")
 
                 self.first_update_done = True
         except Exception:
@@ -283,7 +283,7 @@ class EtherCATHandTrajectorySlider(ExtendedSlider):
         """
         self.slider.setSliderPosition(self.current_value)
         self.slider.setValue(self.current_value)
-        self.target.setText("Tgt: " + str(self.current_value))
+        self.target.setText(f"Tgt: {self.current_value:.1f}")
 
     def set_slider_behaviour(self):
         """
@@ -364,7 +364,7 @@ class EtherCATSelectionSlider(SelectionSlider):
                 self.slider.sliderReleased.connect(self.on_slider_released)
                 self.slider.setSliderPosition(50)
                 self.current_value = 50
-                self.target.setText("Tgt: " + str(50) + "%")
+                self.target.setText(f"Tgt: {50:.1f}%")
                 break
 
     def changeValue(self, value):
@@ -379,7 +379,7 @@ class EtherCATSelectionSlider(SelectionSlider):
                 slider.changeValue(temp_value)
 
         self.current_value = value
-        self.target.setText("Tgt: " + str(value) + "%")
+        self.target.setText(f"Tgt: {value:.1f}")
 
     def on_slider_released(self):
         for slider in self.plugin_parent.sliders:
@@ -390,4 +390,4 @@ class EtherCATSelectionSlider(SelectionSlider):
                     slider.changeValue(0)
         self.slider.setSliderPosition(50)
         self.current_value = 50
-        self.target.setText("Tgt: " + str(50) + "%")
+        self.target.setText(f"Tgt: {50:.1f}%")
