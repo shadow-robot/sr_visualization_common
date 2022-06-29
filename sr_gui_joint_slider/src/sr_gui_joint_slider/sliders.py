@@ -379,7 +379,7 @@ class EtherCATSelectionSlider(SelectionSlider):
                 slider.changeValue(temp_value)
 
         self.current_value = value
-        self.target.setText(f"Tgt: {value:.1f}")
+        self.target.setText(f"Tgt: {self.current_value:.1f}")
 
     def on_slider_released(self):
         for slider in self.plugin_parent.sliders:
