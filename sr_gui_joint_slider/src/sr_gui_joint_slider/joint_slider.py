@@ -17,11 +17,10 @@
 
 from __future__ import absolute_import
 import os
+import math
+from xml.etree import ElementTree as ET
 import rospkg
 import rospy
-import math
-
-from xml.etree import ElementTree as ET
 
 from qt_gui.plugin import Plugin
 from python_qt_binding import loadUi
@@ -30,14 +29,16 @@ from QtCore import Qt
 from QtWidgets import QWidget, QMessageBox
 
 from controller_manager_msgs.srv import ListControllers
-from control_msgs.msg import JointControllerState
 from sr_robot_msgs.msg import JointControllerState as SrJointControllerState
 from sr_robot_msgs.msg import JointMusclePositionControllerState
-from control_msgs.msg import JointTrajectoryControllerState
+from control_msgs.msg import JointTrajectoryControllerState, JointControllerState
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 
-from sr_gui_joint_slider.sliders import JointController, Joint, EtherCATHandSlider
-from sr_gui_joint_slider.sliders import EtherCATHandTrajectorySlider, EtherCATSelectionSlider
+from sr_gui_joint_slider.sliders import (JointController,
+                                         Joint,
+                                         EtherCATHandSlider,
+                                         EtherCATHandTrajectorySlider,
+                                         EtherCATSelectionSlider)
 from sr_utilities.hand_finder import HandFinder
 
 
@@ -65,7 +66,7 @@ class SrGuiJointSlider(Plugin):
                                                                            JointTrajectoryControllerState)}
 
     def __init__(self, context):
-        super(SrGuiJointSlider, self).__init__(context)
+        super().__init__(context)
         self.setObjectName('SrGuiJointSlider')
 
         self._robot_description_xml_root = None
@@ -112,9 +113,9 @@ class SrGuiJointSlider(Plugin):
         hand_finder = HandFinder()
         if hand_finder._hand_e:
             hand_parameters = hand_finder.get_hand_parameters()
-            key, hand_prefix = list(hand_parameters.joint_prefix.items())[0]
+            _, hand_prefix = list(hand_parameters.joint_prefix.items())[0]
         elif hand_finder._hand_h:
-            hand_prefix, value = list(hand_finder._hand_h_parameters.items())[0]
+            hand_prefix, _ = list(hand_finder._hand_h_parameters.items())[0]
             hand_prefix = hand_prefix + "_"
         else:
             hand_prefix = ""
@@ -187,7 +188,7 @@ class SrGuiJointSlider(Plugin):
 
         self.sliders = []
 
-        if(self.selection_slider is not None):
+        if self.selection_slider:
             self._widget.horizontalLayout.removeWidget(self.selection_slider)
             self.selection_slider.close()
             self.selection_slider.deleteLater()
@@ -199,7 +200,7 @@ class SrGuiJointSlider(Plugin):
         Load the new slider
         Put the slider in the list
         """
-        self.sliders = list()
+        self.sliders = []]
         for joint in self.joints:
             slider = None
             slider_ui_file = os.path.join(
@@ -212,10 +213,10 @@ class SrGuiJointSlider(Plugin):
                 else:
                     slider = EtherCATHandSlider(
                         joint, slider_ui_file, self, self._widget.scrollAreaWidgetContents)
-            except Exception as e:
-                rospy.loginfo(e)
+            except Exception as exception:
+                rospy.loginfo(exception)
 
-            if slider is not None:
+            if slider:
                 slider.setMaximumWidth(100)
                 # Load the new slider
                 self._widget.horizontalLayout.addWidget(slider)
@@ -236,20 +237,18 @@ class SrGuiJointSlider(Plugin):
         """
         @return: list of current controllers with associated data
         """
+        controller_list = []
         success = True
         list_controllers = rospy.ServiceProxy(
             'controller_manager/list_controllers', ListControllers)
         try:
             resp1 = list_controllers()
+            controller_list = [c for c in resp1.controller if c.state == "running"]
         except rospy.ServiceException:
-            success = False
-
-        if success:
-            return [c for c in resp1.controller if c.state == "running"]
-        else:
             rospy.loginfo(
                 "Couldn't get list of controllers from controller_manager/list_controllers service")
-            return []
+
+        return controller_list
 
     def _load_robot_description(self):
         """
@@ -355,10 +354,8 @@ class SrGuiJointSlider(Plugin):
                             if self._widget.joint_name_filter_edit.text() not in j_name:
                                 continue
 
-                            min, max, vel = self._get_joint_min_max_vel_special(
-                                j_name)
-                            joint = Joint(
-                                j_name, min, max, vel, joint_controller)
+                            min_value, max_value, vel = self._get_joint_min_max_vel_special(j_name)
+                            joint = Joint(j_name, min_value, max_value, vel, joint_controller)
                             joints.append(joint)
                     else:
                         joint_name = ctrl_params["joint"]
@@ -426,8 +423,8 @@ class SrGuiJointSlider(Plugin):
                 point.time_from_start = rospy.Duration.from_sec(0.005)
                 self.trajectory_target[index].points = [point]
 
-            for cb in self.trajectory_state_slider_cb[index]:  # call the callbacks of the sliders in the list
-                cb(msg)
+            for callback in self.trajectory_state_slider_cb[index]:  # call the callbacks of the sliders in the list
+                callback(msg)
 
     def display_information(self, message):
         message = "Moving any slider will cause the corresponding joint on the hand to move.\n" + \
