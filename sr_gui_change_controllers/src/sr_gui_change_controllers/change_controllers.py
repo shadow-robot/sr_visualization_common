@@ -13,8 +13,7 @@
 #
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
-# Disabling E1002 check since it complains about super for no reason - inheriting from QObject
-# pylint: disable=E1002
+
 
 from __future__ import absolute_import
 import os
@@ -30,7 +29,6 @@ from sensor_msgs.msg import JointState
 from sr_robot_msgs.srv import (RobotTeachMode, RobotTeachModeRequest,
                                RobotTeachModeResponse, ChangeControlType)
 from sr_robot_msgs.msg import ControlType
-from sr_utilities.hand_finder import HandFinder
 
 
 class SrGuiChangeControllers(Plugin):
@@ -50,7 +48,7 @@ class SrGuiChangeControllers(Plugin):
     }
 
     def __init__(self, context):
-        super(SrGuiChangeControllers, self).__init__(context)
+        super().__init__(context)
         self.setObjectName('SrGuiTeachMode')
 
         self.modes_str = ["TRAJECTORY_MODE", "TEACH_MODE", "POSITION_MODE", "DIRECT_PWM_MODE"]
@@ -150,20 +148,20 @@ class SrGuiChangeControllers(Plugin):
         return _robot_names
 
     def get_running_controllers(self):
+        running_controllers = []
         list_controllers = rospy.ServiceProxy(
             'controller_manager/list_controllers', ListControllers)
         try:
             controller_list = list_controllers()
+            # Confirm all running controllers for the controls in this GUI
+            running_controllers = [controller for controller in controller_list.controller
+                                   if controller.state == "running" and
+                                   "tactile_sensor" not in controller.name]
         except rospy.ServiceException as err:
             error = "Couldn't get list of controllers from controller_manager/list_controllers service"
             QMessageBox.warning(self._widget, "No Controllers Found", error)
             rospy.logerr(error + ". Error: " + err)
             return
-
-        # Confirm all running controllers for the controls in this GUI
-        running_controllers = [controller for controller in controller_list.controller
-                               if controller.state == "running" and
-                               "tactile_sensor" not in controller.name]
 
         return running_controllers
 
@@ -214,26 +212,26 @@ class SrGuiChangeControllers(Plugin):
             self.update_current_controller_field(control, robot_name)
 
     def update_current_controller_field(self, ctrl_type, robot_name):
-        if "rh_" == robot_name:
+        if robot_name == "rh_":
             for button in range(len(self._rh_control_buttons)):
                 if button == ctrl_type:
                     self._rh_control_buttons[button].setIcon(self.CONTROLLER_ON_ICON)
                 else:
                     self._rh_control_buttons[button].setIcon(self.CONTROLLER_OFF_ICON)
-        elif "lh_" == robot_name:
+        elif robot_name == "lh_":
             for button in range(len(self._lh_control_buttons)):
                 if button == ctrl_type:
                     self._lh_control_buttons[button].setIcon(self.CONTROLLER_ON_ICON)
                 else:
                     self._lh_control_buttons[button].setIcon(self.CONTROLLER_OFF_ICON)
         # TODO: confirm control types when more controller modes are available for arms.
-        elif "ra_" == robot_name:
+        elif robot_name == "ra_":
             for button in range(len(self._ra_control_buttons)):
                 if button == ctrl_type:
                     self._ra_control_buttons[button].setIcon(self.CONTROLLER_ON_ICON)
                 else:
                     self._ra_control_buttons[button].setIcon(self.CONTROLLER_OFF_ICON)
-        elif "la_" == robot_name:
+        elif robot_name == "la_":
             for button in range(len(self._la_control_buttons)):
                 if button == ctrl_type:
                     self._la_control_buttons[button].setIcon(self.CONTROLLER_ON_ICON)
@@ -261,9 +259,9 @@ class SrGuiChangeControllers(Plugin):
 
     def teach_mode_button_toggled(self, checked, robot, buttons):
         if checked:
-            if robot == "right_hand" or robot == "left_hand":
+            if robot in ("right_hand", "left_hand"):
                 mode = self._check_hand_mode(robot, buttons)
-            elif robot == "right_arm" or robot == "left_arm":
+            elif robot in ("right_arm", "left_arm"):
                 mode = self._check_arm_mode(robot, buttons)
             else:
                 rospy.logerr("Invalid input for robot %s", robot)
@@ -279,13 +277,13 @@ class SrGuiChangeControllers(Plugin):
                 rospy.logerr(error)
 
     def _check_arm_mode(self, robot, buttons):
+        mode = None
         if buttons[0].isChecked():
             mode = RobotTeachModeRequest.TRAJECTORY_MODE
         elif buttons[1].isChecked():
             mode = RobotTeachModeRequest.POSITION_MODE
         else:
             rospy.logerr("None of the buttons checked for robot %s", robot)
-            return
         return mode
 
     def _check_hand_mode(self, robot, buttons):
@@ -340,8 +338,8 @@ class SrGuiChangeControllers(Plugin):
                 controllers_to_stop.append(controller.name)
 
         try:
-            stop_all_controllers = switch_controllers(
-                controllers_to_start, controllers_to_stop, SwitchControllerRequest.BEST_EFFORT, False, 0.0)
+            switch_controllers(controllers_to_start, controllers_to_stop,
+                               SwitchControllerRequest.BEST_EFFORT, False, 0.0)
         except rospy.ServiceException as err:
             error = "Failed to unload all controllers for {}.".format(robot) + \
                     "from '/controller_manager/unload_controller' service"
@@ -356,7 +354,7 @@ class SrGuiChangeControllers(Plugin):
 
     @staticmethod
     def change_teach_mode(mode, robot):
-
+        changed = False
         teach_mode_client = rospy.ServiceProxy('/teach_mode', RobotTeachMode)
 
         req = RobotTeachModeRequest()
@@ -368,11 +366,10 @@ class SrGuiChangeControllers(Plugin):
             if resp.result == RobotTeachModeResponse.ERROR:
                 rospy.logerr(
                     "Failed to change robot {} to mode {}".format(robot, modes_str[mode]))
-                return False
             else:
                 rospy.loginfo(
                     "Changed robot {} to mode {} Result = {}".format(robot, modes_str[mode], resp.result))
-                return True
+                changed = True
         except rospy.ServiceException as err:
             rospy.logerr("Failed to call service teach_mode: {}".format(err))
-            return False
+        return changed
