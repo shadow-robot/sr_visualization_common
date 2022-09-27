@@ -18,17 +18,15 @@
 from __future__ import absolute_import
 from builtins import round
 import os
+from math import radians, degrees
 import rospy
 
 from python_qt_binding import loadUi
 
 from PyQt5 import QtCore, Qt
 from QtWidgets import QFrame
-from controller_manager_msgs.srv import ListControllers
-from sr_robot_msgs.msg import sendupdate, joint
 from std_msgs.msg import Float64
-from math import radians, degrees
-from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
+
 
 
 class JointController():
@@ -55,23 +53,23 @@ class Joint():
     Contains the name, and a controllers list for the joint.
     """
 
-    def __init__(self, name, min, max, vel, joint_controller):
+    def __init__(self, name, min_value, max_value, vel, joint_controller):
         self.name = name
         self.controller = joint_controller
         # Here we manipulate the limits to be in degrees (if they have to do with angles)
         # And also use vel to set min and max if the controller for this joint
         # is a velocity controller
-        self.min = round(degrees(min), 1)
-        self.max = round(degrees(max), 1)
+        self.min_value = round(degrees(min_value), 1)
+        self.max_value = round(degrees(max_value), 1)
         self.vel = round(degrees(vel), 1)
         if self.controller.controller_category == "velocity":
-            self.min = -self.vel
-            self.max = self.vel
+            self.min_value = -self.vel
+            self.max_value = self.vel
         elif self.controller.controller_category == "effort":
             # Happily hardcoded value. It is difficult to establish a relation
             # between these units and Newtons. 900 is enough
-            self.min = -900
-            self.max = 900
+            self.min_value = -900
+            self.max_value = 900
 
 
 class ExtendedSlider(QFrame):
@@ -80,10 +78,10 @@ class ExtendedSlider(QFrame):
     This slider displays the current position and the target as well.
     """
 
-    def __init__(self, joint, uiFile, plugin_parent, parent=None):
+    def __init__(self, joint, ui_file, plugin_parent, parent=None):
         QFrame.__init__(self, parent)
         ui_file = os.path.join(
-            os.path.dirname(os.path.realpath(__file__)), uiFile)
+            os.path.dirname(os.path.realpath(__file__)), ui_file)
         loadUi(ui_file, self)
 
         self.state = None
@@ -103,17 +101,17 @@ class ExtendedSlider(QFrame):
         self.current_controller_index = 0
         self.slider.setMinimum(joint.min)
         self.slider.setMaximum(joint.max)
-        self.min_label.setText(str(joint.min))
-        self.max_label.setText(str(joint.max))
+        self.min_value_label.setText(str(joint.min))
+        self.max_value_label.setText(str(joint.max))
 
         self.selected.stateChanged.connect(self.checkbox_click)
-        self.slider.valueChanged.connect(self.changeValue)
+        self.slider.valueChanged.connect(self.change_value)
 
         self.timer = Qt.QTimer(self)
         self.timer.timeout.connect(self.update)
         self.timer.start(200)
 
-    def changeValue(self, value):
+    def change_value(self, value):
         self.target.setText(f"Tgt: {value:.1f}")
         self.sendupdate(value)
 
@@ -146,16 +144,16 @@ class EtherCATHandSlider(ExtendedSlider):
     Slider for the EtherCAT Hand.
     """
 
-    def __init__(self, joint, uiFile, plugin_parent, parent=None):
-        ExtendedSlider.__init__(self, joint, uiFile, plugin_parent, parent)
+    def __init__(self, joint, ui_file, plugin_parent, parent=None):
+        ExtendedSlider.__init__(self, joint, ui_file, plugin_parent, parent)
 
         self.initialize_controller()
 
     def initialize_controller(self):
         self.slider.setMinimum(self.joint.min)
         self.slider.setMaximum(self.joint.max)
-        self.min_label.setText(str(self.joint.min))
-        self.max_label.setText(str(self.joint.max))
+        self.min_value_label.setText(str(self.joint.min))
+        self.max_value_label.setText(str(self.joint.max))
 
         self.pub = rospy.Publisher(
             self.joint.controller.name + "/command",
@@ -171,24 +169,24 @@ class EtherCATHandSlider(ExtendedSlider):
         self.state = msg
 
     def sendupdate(self, value):
-        if (self.joint.controller.controller_category == "position")\
-                or (self.joint.controller.controller_category == "velocity"):
+        if  self.joint.controller.controller_category == "position" \
+                or self.joint.controller.controller_category == "velocity":
             self.pub.publish(radians(float(value)))
         else:
             self.pub.publish(float(value))
 
     def update(self):
         try:
-            if (self.joint.controller.controller_category == "position")\
-                    or (self.joint.controller.controller_category == "velocity"):
+            if self.joint.controller.controller_category == "position" \
+                    or self.joint.controller.controller_category == "velocity":
                 self.current_value = round(
                     degrees(self.state.process_value), 1)
-            elif (self.joint.controller.controller_category == "effort"):
+            elif self.joint.controller.controller_category == "effort":
                 self.current_value = round(self.state.process_value, 1)
             self.value.setText("Val: " + str(self.current_value))
 
             if not self.first_update_done:
-                if (self.joint.controller.controller_category == "position"):
+                if self.joint.controller.controller_category == "position":
                     self.slider.setSliderPosition(self.current_value)
                     self.slider.setValue(self.current_value)
                     self.target.setText(f"Tgt: {self.current_value:.1f}")
@@ -202,7 +200,7 @@ class EtherCATHandSlider(ExtendedSlider):
         """
         Refresh the current position of the slider with index = self.current_controller_index
         """
-        if (self.joint.controller.controller_category == "position"):
+        if self.joint.controller.controller_category == "position":
             self.slider.setSliderPosition(self.current_value)
             self.slider.setValue(self.current_value)
             self.target.setText(f"Tgt: {self.current_value:.1f}")
@@ -211,21 +209,21 @@ class EtherCATHandSlider(ExtendedSlider):
         """
         Set the behaviour of the slider according to controller type
         """
-        if (self.joint.controller.controller_category == "position"):
+        if self.joint.controller.controller_category == "position":
             if self.pos_slider_tracking_behaviour:
                 self.slider.setTracking(True)
             else:
                 self.slider.setTracking(False)
-        elif (self.joint.controller.controller_category == "velocity"):
+        elif self.joint.controller.controller_category == "velocity":
             self.slider.setTracking(True)
             self.slider.sliderReleased.connect(self.on_slider_released)
-        elif (self.joint.controller.controller_category == "effort"):
+        elif self.joint.controller.controller_category == "effort":
             self.slider.setTracking(True)
             self.slider.sliderReleased.connect(self.on_slider_released)
 
     def on_slider_released(self):
-        if (self.joint.controller.controller_category == "effort")\
-                or (self.joint.controller.controller_category == "velocity"):
+        if self.joint.controller.controller_category == "effort"\
+                or self.joint.controller.controller_category == "velocity":
             self.slider.setSliderPosition(0)
             self.changeValue(0)
 
@@ -236,16 +234,16 @@ class EtherCATHandTrajectorySlider(ExtendedSlider):
     Slider for one EtherCAT Hand joint, that uses the trajectory controller interface.
     """
 
-    def __init__(self, joint, uiFile, plugin_parent, parent=None):
-        ExtendedSlider.__init__(self, joint, uiFile, plugin_parent, parent)
+    def __init__(self, joint, ui_file, plugin_parent, parent=None):
+        ExtendedSlider.__init__(self, joint, ui_file, plugin_parent, parent)
 
         self.initialize_controller()
 
     def initialize_controller(self):
         self.slider.setMinimum(self.joint.min)
         self.slider.setMaximum(self.joint.max)
-        self.min_label.setText(str(self.joint.min))
-        self.max_label.setText(str(self.joint.max))
+        self.min_value_label.setText(str(self.joint.min))
+        self.max_value_label.setText(str(self.joint.max))
 
         self.pub = self.joint.controller.cmd_publisher
         self.set_slider_behaviour()
@@ -305,10 +303,10 @@ class SelectionSlider(QFrame):
     This slider allows the user to move the selected sliders.
     """
 
-    def __init__(self, name, min, max, uiFile, plugin_parent, parent=None):
+    def __init__(self, name, min, max, ui_file, plugin_parent, parent=None):
         QFrame.__init__(self, parent)
         ui_file = os.path.join(
-            os.path.dirname(os.path.realpath(__file__)), uiFile)
+            os.path.dirname(os.path.realpath(__file__)), ui_file)
         loadUi(ui_file, self)
 
         self.plugin_parent = plugin_parent
@@ -320,8 +318,8 @@ class SelectionSlider(QFrame):
 
         self.slider.setMinimum(min)
         self.slider.setMaximum(max)
-        self.min_label.setText(str(min))
-        self.max_label.setText(str(max))
+        self.min_value_label.setText(str(min))
+        self.max_value_label.setText(str(max))
 
         self.slider.valueChanged.connect(self.changeValue)
         self.selected.stateChanged.connect(self.checkbox_click)
@@ -343,10 +341,11 @@ class EtherCATSelectionSlider(SelectionSlider):
     This slider allows the user to move the selected sliders for an etherCAT hand.
     """
 
-    def __init__(self, name, min, max, uiFile, plugin_parent, parent=None):
+    def __init__(self, name, min, max, ui_file, plugin_parent, parent=None):
         SelectionSlider.__init__(
-            self, name, min, max, uiFile, plugin_parent, parent)
+            self, name, min, max, ui_file, plugin_parent, parent)
         self.set_slider_behaviour()
+        self.current_value = 0
 
     def set_slider_behaviour(self):
         """

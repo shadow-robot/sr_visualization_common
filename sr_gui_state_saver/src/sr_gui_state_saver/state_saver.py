@@ -26,8 +26,7 @@ import rospy
 from qt_gui.plugin import Plugin
 from python_qt_binding import loadUi
 
-from QtWidgets import QWidget, QMessageBox, QFrame, \
-    QHBoxLayout, QCheckBox, QLabel
+from QtWidgets import QWidget, QMessageBox
 
 from moveit_msgs.srv import CheckIfRobotStateExistsInWarehouse as HasState
 from moveit_msgs.srv import GetRobotStateFromWarehouse as GetState
@@ -41,7 +40,7 @@ class SrGuiStateSaver(Plugin):
     """
 
     def __init__(self, context):
-        super(SrGuiStateSaver, self).__init__(context)
+        super().__init__(context)
         self.setObjectName('SrGuiStateSaver')
 
         self._publisher = None
@@ -113,7 +112,7 @@ class SrGuiStateSaver(Plugin):
                 QMessageBox.information(self._widget, "State Save Successful!",
                                         "State '{}' saved for {} {}.\n\n".format(name, side, which) +
                                         "Joint names and angles: {}\n".format(joints))
-        except Exception as e:
+        except Exception as error:
             QMessageBox.warning(self._widget, "Could not save for %s." % which,
-                                "State saver failed: " + str(e))
+                                "State saver failed: " + str(error))
             return

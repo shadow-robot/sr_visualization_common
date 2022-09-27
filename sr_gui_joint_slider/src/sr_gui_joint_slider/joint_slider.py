@@ -200,7 +200,7 @@ class SrGuiJointSlider(Plugin):
         Load the new slider
         Put the slider in the list
         """
-        self.sliders = []]
+        self.sliders = []
         for joint in self.joints:
             slider = None
             slider_ui_file = os.path.join(
