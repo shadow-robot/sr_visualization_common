@@ -169,7 +169,7 @@ class EtherCATHandSlider(ExtendedSlider):
         self.state = msg
 
     def sendupdate(self, value):
-        if  self.joint.controller.controller_category == "position" \
+        if self.joint.controller.controller_category == "position" \
                 or self.joint.controller.controller_category == "velocity":
             self.pub.publish(radians(float(value)))
         else:
@@ -225,7 +225,7 @@ class EtherCATHandSlider(ExtendedSlider):
         if self.joint.controller.controller_category == "effort"\
                 or self.joint.controller.controller_category == "velocity":
             self.slider.setSliderPosition(0)
-            self.changeValue(0)
+            self.change_value(0)
 
 
 class EtherCATHandTrajectorySlider(ExtendedSlider):
@@ -287,7 +287,7 @@ class EtherCATHandTrajectorySlider(ExtendedSlider):
         """
         Set the behaviour of the slider according to controller type
         """
-        if (self.joint.controller.controller_category == "position_trajectory"):
+        if self.joint.controller.controller_category == "position_trajectory":
             if self.pos_slider_tracking_behaviour:
                 self.slider.setTracking(True)
             else:
@@ -303,7 +303,7 @@ class SelectionSlider(QFrame):
     This slider allows the user to move the selected sliders.
     """
 
-    def __init__(self, name, min, max, ui_file, plugin_parent, parent=None):
+    def __init__(self, name, min_value, max_value, ui_file, plugin_parent, parent=None):
         QFrame.__init__(self, parent)
         ui_file = os.path.join(
             os.path.dirname(os.path.realpath(__file__)), ui_file)
@@ -316,15 +316,15 @@ class SelectionSlider(QFrame):
         self.slider.setTracking(False)
         self.is_selected = False
 
-        self.slider.setMinimum(min)
-        self.slider.setMaximum(max)
-        self.min_value_label.setText(str(min))
-        self.max_value_label.setText(str(max))
+        self.slider.setMinimum(min_value)
+        self.slider.setMaximum(max_value)
+        self.min_value_label.setText(str(min_value))
+        self.max_value_label.setText(str(max_value))
 
-        self.slider.valueChanged.connect(self.changeValue)
+        self.slider.valueChanged.connect(self.change_value)
         self.selected.stateChanged.connect(self.checkbox_click)
 
-    def changeValue(self, value):
+    def change_value(self, value):
         raise NotImplementedError("Virtual method, please implement.")
 
     def checkbox_click(self, value):
@@ -366,7 +366,7 @@ class EtherCATSelectionSlider(SelectionSlider):
                 self.target.setText(f"Tgt: {self.current_value:.1f}%")
                 break
 
-    def changeValue(self, value):
+    def change_value(self, value):
         """
         modify the values from the selected sliders.
         """
@@ -375,7 +375,7 @@ class EtherCATSelectionSlider(SelectionSlider):
                 temp_value = ((slider.slider.maximum() - slider.slider.minimum()) * float(
                     value) / 100.0) + slider.slider.minimum()
                 slider.slider.setSliderPosition(temp_value)
-                slider.changeValue(temp_value)
+                slider.change_value(temp_value)
 
         self.current_value = value
         self.target.setText(f"Tgt: {self.current_value:.1f}")
@@ -386,7 +386,7 @@ class EtherCATSelectionSlider(SelectionSlider):
                 if (slider.joint.controller.controller_category == "effort")\
                         or (slider.joint.controller.controller_category == "velocity"):
                     slider.slider.setSliderPosition(0)
-                    slider.changeValue(0)
+                    slider.change_value(0)
         self.current_value = 50
         self.slider.setSliderPosition(self.current_value)
         self.target.setText(f"Tgt: {self.current_value:.1f}%")
