@@ -18,6 +18,7 @@
 from __future__ import absolute_import
 from builtins import round
 import os
+from sr_robot_msgs.msg import sendupdate, joint
 from math import radians, degrees
 import rospy
 
@@ -26,7 +27,6 @@ from python_qt_binding import loadUi
 from PyQt5 import QtCore, Qt
 from QtWidgets import QFrame
 from std_msgs.msg import Float64
-
 
 
 class JointController():
@@ -99,10 +99,10 @@ class ExtendedSlider(QFrame):
         self.first_update_done = False
 
         self.current_controller_index = 0
-        self.slider.setMinimum(joint.min)
-        self.slider.setMaximum(joint.max)
-        self.min_value_label.setText(str(joint.min))
-        self.max_value_label.setText(str(joint.max))
+        self.slider.setMinimum(joint.min_value)
+        self.slider.setMaximum(joint.max_value)
+        self.min_label.setText(str(joint.min_value))
+        self.max_label.setText(str(joint.max_value))
 
         self.selected.stateChanged.connect(self.checkbox_click)
         self.slider.valueChanged.connect(self.change_value)
@@ -150,10 +150,10 @@ class EtherCATHandSlider(ExtendedSlider):
         self.initialize_controller()
 
     def initialize_controller(self):
-        self.slider.setMinimum(self.joint.min)
-        self.slider.setMaximum(self.joint.max)
-        self.min_value_label.setText(str(self.joint.min))
-        self.max_value_label.setText(str(self.joint.max))
+        self.slider.setMinimum(self.joint.min_value)
+        self.slider.setMaximum(self.joint.max_value)
+        self.min_label.setText(str(self.joint.min_value))
+        self.max_label.setText(str(self.joint.max_value))
 
         self.pub = rospy.Publisher(
             self.joint.controller.name + "/command",
@@ -240,10 +240,10 @@ class EtherCATHandTrajectorySlider(ExtendedSlider):
         self.initialize_controller()
 
     def initialize_controller(self):
-        self.slider.setMinimum(self.joint.min)
-        self.slider.setMaximum(self.joint.max)
-        self.min_value_label.setText(str(self.joint.min))
-        self.max_value_label.setText(str(self.joint.max))
+        self.slider.setMinimum(self.joint.min_value)
+        self.slider.setMaximum(self.joint.max_value)
+        self.min_label.setText(str(self.joint.min_value))
+        self.max_label.setText(str(self.joint.max_value))
 
         self.pub = self.joint.controller.cmd_publisher
         self.set_slider_behaviour()
@@ -318,8 +318,8 @@ class SelectionSlider(QFrame):
 
         self.slider.setMinimum(min_value)
         self.slider.setMaximum(max_value)
-        self.min_value_label.setText(str(min_value))
-        self.max_value_label.setText(str(max_value))
+        self.min_label.setText(str(min_value))
+        self.max_label.setText(str(max_value))
 
         self.slider.valueChanged.connect(self.change_value)
         self.selected.stateChanged.connect(self.checkbox_click)
@@ -341,9 +341,8 @@ class EtherCATSelectionSlider(SelectionSlider):
     This slider allows the user to move the selected sliders for an etherCAT hand.
     """
 
-    def __init__(self, name, min, max, ui_file, plugin_parent, parent=None):
-        SelectionSlider.__init__(
-            self, name, min, max, ui_file, plugin_parent, parent)
+    def __init__(self, name, min_value, max_value, ui_file, plugin_parent, parent=None):
+        SelectionSlider.__init__(self, name, min_value, max_value, ui_file, plugin_parent, parent)
         self.set_slider_behaviour()
         self.current_value = 0
 

@@ -1,10 +1,6 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-# Disabling E1002 check since it complains about super for no reason -
-# inheriting from QObject
-#
-
-# Copyright 2016 Shadow Robot Company Ltd.
+# Copyright 2016, 2022 Shadow Robot Company Ltd.
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free

@@ -103,7 +103,7 @@ class SrGuiJointSlider(Plugin):
 
         self._widget.reloadButton.setEnabled(True)
 
-        self.hand_prefix = self._get_hand_prefix()
+        self.hand_prefix = get_hand_prefix()
         self._widget.joint_name_filter_edit.setText(self.hand_prefix)
 
         self.on_reload_button_cicked_()
@@ -388,13 +388,13 @@ class SrGuiJointSlider(Plugin):
                 callback(msg)
 
 
-def _get_hand_prefix(self):
+def get_hand_prefix():
     hand_finder = HandFinder()
-    if hand_finder._hand_e:
+    if hand_finder.hand_e_available():
         hand_parameters = hand_finder.get_hand_parameters()
         _, hand_prefix = list(hand_parameters.joint_prefix.items())[0]
-    elif hand_finder._hand_h:
-        hand_prefix, _ = list(hand_finder._hand_h_parameters.items())[0]
+    elif hand_finder.hand_h_available():
+        hand_prefix, _ = list(hand_finder.get_hand_h_parameters().items())[0]
         hand_prefix = hand_prefix + "_"
     else:
         hand_prefix = ""
