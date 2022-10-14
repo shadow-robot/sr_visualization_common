@@ -244,7 +244,7 @@ class SrGuiJointSlider(Plugin):
         try:
             xml = rospy.get_param(name)
             self._robot_description_xml_root = ET.fromstring(xml)
-        except Exception as error:
+        except KeyError as error:
             rospy.logerr(f"Failed to get robot description from param {name} : {error}")
 
     def _get_joint_min_max_vel(self, jname):
