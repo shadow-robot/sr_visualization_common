@@ -58,7 +58,8 @@ class SrGuiStateSaver(Plugin):
         self._widget.information_box.clicked.connect(self.display_information)
         self._widget.button_save.clicked.connect(self._button_pressed)
 
-    def display_information(self, message):
+    @staticmethod
+    def display_information(message):
         message = "To save a state you must first be connected to the warehouse. " + \
                   "After launching the hand, click the green Connect button in the ‘Context’ tab " + \
                   "in the 'Motion Planning' tab of RViz.\n" + \
