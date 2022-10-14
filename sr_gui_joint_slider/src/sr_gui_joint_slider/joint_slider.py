@@ -29,8 +29,7 @@ from QtCore import Qt
 from QtWidgets import QWidget, QMessageBox
 
 from controller_manager_msgs.srv import ListControllers
-from sr_robot_msgs.msg import JointControllerState as SrJointControllerState
-from sr_robot_msgs.msg import JointMusclePositionControllerState
+from sr_robot_msgs.msg import JointMusclePositionControllerState, JointControllerState as SrJointControllerState
 from control_msgs.msg import JointTrajectoryControllerState, JointControllerState
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 
@@ -103,11 +102,11 @@ class SrGuiJointSlider(Plugin):
 
         self._widget.reloadButton.setEnabled(True)
 
-        self.hand_prefix = get_hand_prefix()
+        self.hand_prefix = self.get_hand_prefix()
         self._widget.joint_name_filter_edit.setText(self.hand_prefix)
 
         self.on_reload_button_cicked_()
-        self._widget.information_btn.clicked.connect(display_information)
+        self._widget.information_btn.clicked.connect(self.display_information)
 
     def _unregister(self):
         pass
@@ -334,8 +333,8 @@ class SrGuiJointSlider(Plugin):
                             if self._widget.joint_name_filter_edit.text() not in j_name:
                                 continue
 
-                            min_value, max_value, vel = self._get_joint_min_max_vel_special(j_name)
-                            joint = Joint(j_name, min_value, max_value, vel, joint_controller)
+                            min_position, max_position, max_velocity = self._get_joint_min_max_vel_special(j_name)
+                            joint = Joint(j_name, min_position, max_position, max_velocity, joint_controller)
                             joints.append(joint)
                     else:
                         joint_name = ctrl_params["joint"]
@@ -358,8 +357,8 @@ class SrGuiJointSlider(Plugin):
                         if self._widget.joint_name_filter_edit.text() not in joint_name:
                             continue
 
-                        min_value, max_value, vel = self._get_joint_min_max_vel_special(joint_name)
-                        joint = Joint(joint_name, min_value, max_value, vel, joint_controller)
+                        min_position, max_position, max_velocity = self._get_joint_min_max_vel_special(joint_name)
+                        joint = Joint(joint_name, min_position, max_position, max_velocity, joint_controller)
                         joints.append(joint)
                 else:
                     rospy.logwarn(
@@ -370,7 +369,7 @@ class SrGuiJointSlider(Plugin):
                     "Parameters for controller %s not found", controller.name)
                 continue
 
-        arm_joints_displayed_warning(joints)
+        self.arm_joints_displayed_warning(joints)
 
         return joints
 
@@ -387,55 +386,55 @@ class SrGuiJointSlider(Plugin):
             for callback in self.trajectory_state_slider_cb[index]:  # call the callbacks of the sliders in the list
                 callback(msg)
 
+    @staticmethod
+    def get_hand_prefix():
+        hand_finder = HandFinder()
+        if hand_finder.hand_e_available():
+            hand_parameters = hand_finder.get_hand_parameters()
+            _, hand_prefix = list(hand_parameters.joint_prefix.items())[0]
+        elif hand_finder.hand_h_available():
+            hand_prefix, _ = list(hand_finder.get_hand_h_parameters().items())[0]
+            hand_prefix = hand_prefix + "_"
+        else:
+            hand_prefix = ""
+        return hand_prefix
 
-def get_hand_prefix():
-    hand_finder = HandFinder()
-    if hand_finder.hand_e_available():
-        hand_parameters = hand_finder.get_hand_parameters()
-        _, hand_prefix = list(hand_parameters.joint_prefix.items())[0]
-    elif hand_finder.hand_h_available():
-        hand_prefix, _ = list(hand_finder.get_hand_h_parameters().items())[0]
-        hand_prefix = hand_prefix + "_"
-    else:
-        hand_prefix = ""
-    return hand_prefix
+    @staticmethod
+    def arm_joints_displayed_warning(joints):
+        arm_prefixes = ['ra_', 'la_']
+        for joint in joints:
+            for arm_prefix in arm_prefixes:
+                if arm_prefix in joint.name:
+                    message = "Joints filtered contain arm joints. Please take caution when " + \
+                                "moving arm joints as a small movement with the slider can permit " + \
+                                "a large movement on the robot!\n" + \
+                                "We advise to use plan and then execute from RViz motion planning instead."
+                    msg = QMessageBox()
+                    msg.setWindowTitle("Warning!!")
+                    msg.setIcon(QMessageBox().Warning)
+                    msg.setText(message)
+                    msg.setStandardButtons(QMessageBox.Ok)
+                    msg.exec_()
+                    return
 
-
-def arm_joints_displayed_warning(joints):
-    arm_prefixes = ['ra_', 'la_']
-    for joint in joints:
-        for arm_prefix in arm_prefixes:
-            if arm_prefix in joint.name:
-                message = "Joints filtered contain arm joints. Please take caution when " + \
-                            "moving arm joints as a small movement with the slider can permit " + \
-                            "a large movement on the robot!\n" + \
-                            "We advise to use plan and then execute from RViz motion planning instead."
-                msg = QMessageBox()
-                msg.setWindowTitle("Warning!!")
-                msg.setIcon(QMessageBox().Warning)
-                msg.setText(message)
-                msg.setStandardButtons(QMessageBox.Ok)
-                msg.exec_()
-                return
-
-
-def display_information(message):
-    message = "Moving any slider will cause the corresponding joint on the hand to move.\n" + \
-                "You have to start the hand in either position control or teach mode. " + \
-                "If the control is changed, reload the plugin to make sure that the " + \
-                "sliders correspond to the control that is running at this moment.\n" + \
-                "The robot description field allows you to select the name of the robot " + \
-                "description to be used by the joint sliders.\n" + \
-                "The Joint name filter filters the sliders to show only joints that " + \
-                "contain the joint name specified in the text box.\n" + \
-                "The selection button at the bottom of each joint slider allows you to " + \
-                "select and move multiple joints at once. The selected joints can then be " + \
-                "moved by the last joint slider on the right titled 'Change Selected'.\n" + \
-                "WARNING: If you are attempting to move more than one joint slider at the " + \
-                "same time, please ensure each of the joints are free to move."
-    msg = QMessageBox()
-    msg.setWindowTitle("Information")
-    msg.setIcon(QMessageBox().Information)
-    msg.setText(message)
-    msg.setStandardButtons(QMessageBox.Ok)
-    msg.exec_()
+    @staticmethod
+    def display_information(message):
+        message = "Moving any slider will cause the corresponding joint on the hand to move.\n" + \
+                    "You have to start the hand in either position control or teach mode. " + \
+                    "If the control is changed, reload the plugin to make sure that the " + \
+                    "sliders correspond to the control that is running at this moment.\n" + \
+                    "The robot description field allows you to select the name of the robot " + \
+                    "description to be used by the joint sliders.\n" + \
+                    "The Joint name filter filters the sliders to show only joints that " + \
+                    "contain the joint name specified in the text box.\n" + \
+                    "The selection button at the bottom of each joint slider allows you to " + \
+                    "select and move multiple joints at once. The selected joints can then be " + \
+                    "moved by the last joint slider on the right titled 'Change Selected'.\n" + \
+                    "WARNING: If you are attempting to move more than one joint slider at the " + \
+                    "same time, please ensure each of the joints are free to move."
+        msg = QMessageBox()
+        msg.setWindowTitle("Information")
+        msg.setIcon(QMessageBox().Information)
+        msg.setText(message)
+        msg.setStandardButtons(QMessageBox.Ok)
+        msg.exec_()
