@@ -220,7 +220,8 @@ class SrGuiJointSlider(Plugin):
         self.selection_slider.setMaximumWidth(100)
         self._widget.horizontalLayout.addWidget(self.selection_slider)
 
-    def get_current_controllers(self):
+    @staticmethod
+    def get_current_controllers():
         """
         @return: list of current controllers with associated data
         """

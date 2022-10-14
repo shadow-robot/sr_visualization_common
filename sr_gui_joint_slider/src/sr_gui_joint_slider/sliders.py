@@ -13,13 +13,15 @@
 #
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
-#
+
+# pylint: disable=W0621
+
 
 from __future__ import absolute_import
 from builtins import round
 import os
-from sr_robot_msgs.msg import sendupdate, joint
 from math import radians, degrees
+from sr_robot_msgs.msg import sendupdate, joint  # pylint: disable=W0611
 import rospy
 
 from python_qt_binding import loadUi

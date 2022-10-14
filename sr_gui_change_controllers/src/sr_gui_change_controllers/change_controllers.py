@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
+# pylint: disable=R1702
 
 from __future__ import absolute_import
 import os
@@ -161,7 +162,6 @@ class SrGuiChangeControllers(Plugin):
             error = "Couldn't get list of controllers from controller_manager/list_controllers service"
             QMessageBox.warning(self._widget, "No Controllers Found", error)
             rospy.logerr(error + ". Error: " + err)
-            return
 
         return running_controllers
 
@@ -180,10 +180,10 @@ class SrGuiChangeControllers(Plugin):
                     if "position_controller" in controller.name:
                         current_robot_control[robot_name] = self.CONTROL['POSITION_CONTROL']
                         break
-                    elif "trajectory_controller" in controller.name:
+                    if "trajectory_controller" in controller.name:
                         current_robot_control[robot_name] = self.CONTROL['TRAJECTORY_CONTROL']
                         break
-                    elif "effort_controller" in controller.name:
+                    if "effort_controller" in controller.name:
                         if "h_" in robot_name:
                             if all(hand in self._controller_groups for hand in ["rh_", "lh_"]):
                                 hand_id = 'sr_bimanual_hands_robot'
@@ -276,7 +276,8 @@ class SrGuiChangeControllers(Plugin):
                 QMessageBox.warning(self._widget, "Control Not Changed!", error)
                 rospy.logerr(error)
 
-    def _check_arm_mode(self, robot, buttons):
+    @staticmethod
+    def _check_arm_mode(robot, buttons):
         mode = None
         if buttons[0].isChecked():
             mode = RobotTeachModeRequest.TRAJECTORY_MODE
@@ -286,7 +287,9 @@ class SrGuiChangeControllers(Plugin):
             rospy.logerr("None of the buttons checked for robot %s", robot)
         return mode
 
-    def _check_hand_mode(self, robot, buttons):
+    @staticmethod
+    def _check_hand_mode(robot, buttons):
+        mode = None
         if buttons[0].isChecked():
             mode = RobotTeachModeRequest.TRAJECTORY_MODE
         elif buttons[1].isChecked():
@@ -297,10 +300,10 @@ class SrGuiChangeControllers(Plugin):
             mode = RobotTeachModeRequest.DIRECT_PWM_MODE
         else:
             rospy.logerr("None of the buttons checked for robot %s", robot)
-            return
         return mode
 
-    def display_information(self, message):
+    @staticmethod
+    def display_information(message):
         message = "Use this plugin to load one of the " + \
                   "different types of controllers set by default.\n" + \
                   "Simply click on a controller type, " + \
