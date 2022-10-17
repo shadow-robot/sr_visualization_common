@@ -1,6 +1,6 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
-# Copyright 2012, 2021 Shadow Robot Company Ltd.
+# Copyright 2012, 2021, 2022 Shadow Robot Company Ltd.
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -13,15 +13,15 @@
 #
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
-#
+
+# pylint: disable=R1702
 
 from __future__ import absolute_import
 import os
+import math
+from xml.etree import ElementTree as ET
 import rospkg
 import rospy
-import math
-
-from xml.etree import ElementTree as ET
 
 from qt_gui.plugin import Plugin
 from python_qt_binding import loadUi
@@ -30,14 +30,15 @@ from QtCore import Qt
 from QtWidgets import QWidget, QMessageBox
 
 from controller_manager_msgs.srv import ListControllers
-from control_msgs.msg import JointControllerState
-from sr_robot_msgs.msg import JointControllerState as SrJointControllerState
-from sr_robot_msgs.msg import JointMusclePositionControllerState
-from control_msgs.msg import JointTrajectoryControllerState
+from sr_robot_msgs.msg import JointMusclePositionControllerState, JointControllerState as SrJointControllerState
+from control_msgs.msg import JointTrajectoryControllerState, JointControllerState
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 
-from sr_gui_joint_slider.sliders import JointController, Joint, EtherCATHandSlider
-from sr_gui_joint_slider.sliders import EtherCATHandTrajectorySlider, EtherCATSelectionSlider
+from sr_gui_joint_slider.sliders import (JointController,
+                                         Joint,
+                                         EtherCATHandSlider,
+                                         EtherCATHandTrajectorySlider,
+                                         EtherCATSelectionSlider)
 from sr_utilities.hand_finder import HandFinder
 
 
@@ -65,7 +66,7 @@ class SrGuiJointSlider(Plugin):
                                                                            JointTrajectoryControllerState)}
 
     def __init__(self, context):
-        super(SrGuiJointSlider, self).__init__(context)
+        super().__init__(context)
         self.setObjectName('SrGuiJointSlider')
 
         self._robot_description_xml_root = None
@@ -102,23 +103,11 @@ class SrGuiJointSlider(Plugin):
 
         self._widget.reloadButton.setEnabled(True)
 
-        self.hand_prefix = self._get_hand_prefix()
+        self.hand_prefix = self.get_hand_prefix()
         self._widget.joint_name_filter_edit.setText(self.hand_prefix)
 
         self.on_reload_button_cicked_()
         self._widget.information_btn.clicked.connect(self.display_information)
-
-    def _get_hand_prefix(self):
-        hand_finder = HandFinder()
-        if hand_finder._hand_e:
-            hand_parameters = hand_finder.get_hand_parameters()
-            key, hand_prefix = list(hand_parameters.joint_prefix.items())[0]
-        elif hand_finder._hand_h:
-            hand_prefix, value = list(hand_finder._hand_h_parameters.items())[0]
-            hand_prefix = hand_prefix + "_"
-        else:
-            hand_prefix = ""
-        return hand_prefix
 
     def _unregister(self):
         pass
@@ -187,7 +176,7 @@ class SrGuiJointSlider(Plugin):
 
         self.sliders = []
 
-        if(self.selection_slider is not None):
+        if self.selection_slider:
             self._widget.horizontalLayout.removeWidget(self.selection_slider)
             self.selection_slider.close()
             self.selection_slider.deleteLater()
@@ -199,7 +188,7 @@ class SrGuiJointSlider(Plugin):
         Load the new slider
         Put the slider in the list
         """
-        self.sliders = list()
+        self.sliders = []
         for joint in self.joints:
             slider = None
             slider_ui_file = os.path.join(
@@ -212,10 +201,10 @@ class SrGuiJointSlider(Plugin):
                 else:
                     slider = EtherCATHandSlider(
                         joint, slider_ui_file, self, self._widget.scrollAreaWidgetContents)
-            except Exception as e:
-                rospy.loginfo(e)
+            except Exception as exception:
+                rospy.loginfo(exception)
 
-            if slider is not None:
+            if slider:
                 slider.setMaximumWidth(100)
                 # Load the new slider
                 self._widget.horizontalLayout.addWidget(slider)
@@ -232,24 +221,20 @@ class SrGuiJointSlider(Plugin):
         self.selection_slider.setMaximumWidth(100)
         self._widget.horizontalLayout.addWidget(self.selection_slider)
 
-    def get_current_controllers(self):
+    @staticmethod
+    def get_current_controllers():
         """
         @return: list of current controllers with associated data
         """
-        success = True
-        list_controllers = rospy.ServiceProxy(
-            'controller_manager/list_controllers', ListControllers)
+        controller_list = []
+        list_controllers = rospy.ServiceProxy('controller_manager/list_controllers', ListControllers)
         try:
             resp1 = list_controllers()
+            controller_list = [c for c in resp1.controller if c.state == "running"]
         except rospy.ServiceException:
-            success = False
+            rospy.loginfo("Couldn't get list of controllers from controller_manager/list_controllers service")
 
-        if success:
-            return [c for c in resp1.controller if c.state == "running"]
-        else:
-            rospy.loginfo(
-                "Couldn't get list of controllers from controller_manager/list_controllers service")
-            return []
+        return controller_list
 
     def _load_robot_description(self):
         """
@@ -261,28 +246,21 @@ class SrGuiJointSlider(Plugin):
         try:
             xml = rospy.get_param(name)
             self._robot_description_xml_root = ET.fromstring(xml)
-        except KeyError as e:
-            rospy.logerr(
-                "Failed to get robot description from param %s : %s" % (name, e))
-            return
-        except Exception:
-            raise
+        except KeyError as error:
+            rospy.logerr(f"Failed to get robot description from param {name} : {error}")
 
     def _get_joint_min_max_vel(self, jname):
         """Get the min and max from the robot description for a given joint."""
+        output = (None, None, None)
         root = self._robot_description_xml_root
         if root is not None:
             joint_type = root.findall(".joint[@name='" + jname + "']")[0].attrib['type']
             if joint_type == "continuous":
                 limit = root.findall(".//joint[@name='" + jname + "']/limit")
                 if limit is None or len(limit) == 0:
-                    return (-math.pi,
-                            math.pi,
-                            3.0)  # A default speed
+                    output = (-math.pi, math.pi, 3.0)  # A default speed
                 else:
-                    return (-math.pi,
-                            math.pi,
-                            float(limit[0].attrib['velocity']))
+                    output = (-math.pi, math.pi, float(limit[0].attrib['velocity']))
             else:
                 limit = root.findall(".//joint[@name='" + jname + "']/limit")
                 if limit is None or len(limit) == 0:
@@ -291,24 +269,26 @@ class SrGuiJointSlider(Plugin):
                     limit = root.findall(
                         ".//joint[@name='" + jname.upper() + "']/limit")
                 if limit is not None and len(limit) > 0:
-                    return (float(limit[0].attrib['lower']),
-                            float(limit[0].attrib['upper']),
-                            float(limit[0].attrib['velocity']))
+                    output = (float(limit[0].attrib['lower']),
+                              float(limit[0].attrib['upper']),
+                              float(limit[0].attrib['velocity']))
                 else:
                     rospy.logerr("Limit not found for joint %s", jname)
         else:
             rospy.logerr("robot_description_xml_root == None")
-        return (None, None, None)
+        return output
 
     def _get_joint_min_max_vel_special(self, jname):
+        output = (None, None, None)
         if "J0" in jname:
             jname1 = jname.replace("J0", "J1")
             jname2 = jname.replace("J0", "J2")
             min1, max1, vel1 = self._get_joint_min_max_vel(jname1)
             min2, max2, vel2 = self._get_joint_min_max_vel(jname2)
-            return (min1 + min2, max1 + max2, vel1 + vel2)
+            output = (min1 + min2, max1 + max2, vel1 + vel2)
         else:
-            return self._get_joint_min_max_vel(jname)
+            output = self._get_joint_min_max_vel(jname)
+        return output
 
     def _create_joints(self, controllers):
         joints = []
@@ -355,10 +335,8 @@ class SrGuiJointSlider(Plugin):
                             if self._widget.joint_name_filter_edit.text() not in j_name:
                                 continue
 
-                            min, max, vel = self._get_joint_min_max_vel_special(
-                                j_name)
-                            joint = Joint(
-                                j_name, min, max, vel, joint_controller)
+                            min_position, max_position, max_velocity = self._get_joint_min_max_vel_special(j_name)
+                            joint = Joint(j_name, min_position, max_position, max_velocity, joint_controller)
                             joints.append(joint)
                     else:
                         joint_name = ctrl_params["joint"]
@@ -381,10 +359,8 @@ class SrGuiJointSlider(Plugin):
                         if self._widget.joint_name_filter_edit.text() not in joint_name:
                             continue
 
-                        min, max, vel = self._get_joint_min_max_vel_special(
-                            joint_name)
-                        joint = Joint(
-                            joint_name, min, max, vel, joint_controller)
+                        min_position, max_position, max_velocity = self._get_joint_min_max_vel_special(joint_name)
+                        joint = Joint(joint_name, min_position, max_position, max_velocity, joint_controller)
                         joints.append(joint)
                 else:
                     rospy.logwarn(
@@ -399,23 +375,6 @@ class SrGuiJointSlider(Plugin):
 
         return joints
 
-    def arm_joints_displayed_warning(self, joints):
-        arm_prefixes = ['ra_', 'la_']
-        for joint in joints:
-            for arm_prefix in arm_prefixes:
-                if arm_prefix in joint.name:
-                    message = "Joints filtered contain arm joints. Please take caution when " + \
-                              "moving arm joints as a small movement with the slider can permit " + \
-                              "a large movement on the robot!\n" + \
-                              "We advise to use plan and then execute from RViz motion planning instead."
-                    msg = QMessageBox()
-                    msg.setWindowTitle("Warning!!")
-                    msg.setIcon(QMessageBox().Warning)
-                    msg.setText(message)
-                    msg.setStandardButtons(QMessageBox.Ok)
-                    msg.exec_()
-                    return
-
     def _trajectory_state_cb(self, msg, index):
         if not self.pause_subscriber:
             if not self.trajectory_target[index].joint_names:  # Initialize the targets with the current position
@@ -426,23 +385,55 @@ class SrGuiJointSlider(Plugin):
                 point.time_from_start = rospy.Duration.from_sec(0.005)
                 self.trajectory_target[index].points = [point]
 
-            for cb in self.trajectory_state_slider_cb[index]:  # call the callbacks of the sliders in the list
-                cb(msg)
+            for callback in self.trajectory_state_slider_cb[index]:  # call the callbacks of the sliders in the list
+                callback(msg)
 
-    def display_information(self, message):
+    @staticmethod
+    def get_hand_prefix():
+        hand_finder = HandFinder()
+        if hand_finder.hand_e_available():
+            hand_parameters = hand_finder.get_hand_parameters()
+            _, hand_prefix = list(hand_parameters.joint_prefix.items())[0]
+        elif hand_finder.hand_h_available():
+            hand_prefix, _ = list(hand_finder.get_hand_h_parameters().items())[0]
+            hand_prefix = hand_prefix + "_"
+        else:
+            hand_prefix = ""
+        return hand_prefix
+
+    @staticmethod
+    def arm_joints_displayed_warning(joints):
+        arm_prefixes = ['ra_', 'la_']
+        for joint in joints:
+            for arm_prefix in arm_prefixes:
+                if arm_prefix in joint.name:
+                    message = "Joints filtered contain arm joints. Please take caution when " + \
+                                "moving arm joints as a small movement with the slider can permit " + \
+                                "a large movement on the robot!\n" + \
+                                "We advise to use plan and then execute from RViz motion planning instead."
+                    msg = QMessageBox()
+                    msg.setWindowTitle("Warning!!")
+                    msg.setIcon(QMessageBox().Warning)
+                    msg.setText(message)
+                    msg.setStandardButtons(QMessageBox.Ok)
+                    msg.exec_()
+                    return
+
+    @staticmethod
+    def display_information(message):
         message = "Moving any slider will cause the corresponding joint on the hand to move.\n" + \
-                  "You have to start the hand in either position control or teach mode. " + \
-                  "If the control is changed, reload the plugin to make sure that the " + \
-                  "sliders correspond to the control that is running at this moment.\n" + \
-                  "The robot description field allows you to select the name of the robot " + \
-                  "description to be used by the joint sliders.\n" + \
-                  "The Joint name filter filters the sliders to show only joints that " + \
-                  "contain the joint name specified in the text box.\n" + \
-                  "The selection button at the bottom of each joint slider allows you to " + \
-                  "select and move multiple joints at once. The selected joints can then be " + \
-                  "moved by the last joint slider on the right titled 'Change Selected'.\n" + \
-                  "WARNING: If you are attempting to move more than one joint slider at the " + \
-                  "same time, please ensure each of the joints are free to move."
+                    "You have to start the hand in either position control or teach mode. " + \
+                    "If the control is changed, reload the plugin to make sure that the " + \
+                    "sliders correspond to the control that is running at this moment.\n" + \
+                    "The robot description field allows you to select the name of the robot " + \
+                    "description to be used by the joint sliders.\n" + \
+                    "The Joint name filter filters the sliders to show only joints that " + \
+                    "contain the joint name specified in the text box.\n" + \
+                    "The selection button at the bottom of each joint slider allows you to " + \
+                    "select and move multiple joints at once. The selected joints can then be " + \
+                    "moved by the last joint slider on the right titled 'Change Selected'.\n" + \
+                    "WARNING: If you are attempting to move more than one joint slider at the " + \
+                    "same time, please ensure each of the joints are free to move."
         msg = QMessageBox()
         msg.setWindowTitle("Information")
         msg.setIcon(QMessageBox().Information)

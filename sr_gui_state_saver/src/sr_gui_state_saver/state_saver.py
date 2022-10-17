@@ -1,10 +1,6 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-# Disabling E1002 check since it complains about super for no reason -
-# inheriting from QObject
-#
-
-# Copyright 2016 Shadow Robot Company Ltd.
+# Copyright 2016, 2022 Shadow Robot Company Ltd.
 #
 # This program is free software: you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by the Free
@@ -18,6 +14,9 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
+# pylint: disable=R1702
+
+
 from __future__ import absolute_import
 import os
 import rospkg
@@ -26,8 +25,7 @@ import rospy
 from qt_gui.plugin import Plugin
 from python_qt_binding import loadUi
 
-from QtWidgets import QWidget, QMessageBox, QFrame, \
-    QHBoxLayout, QCheckBox, QLabel
+from QtWidgets import QWidget, QMessageBox
 
 from moveit_msgs.srv import CheckIfRobotStateExistsInWarehouse as HasState
 from moveit_msgs.srv import GetRobotStateFromWarehouse as GetState
@@ -41,7 +39,7 @@ class SrGuiStateSaver(Plugin):
     """
 
     def __init__(self, context):
-        super(SrGuiStateSaver, self).__init__(context)
+        super().__init__(context)
         self.setObjectName('SrGuiStateSaver')
 
         self._publisher = None
@@ -60,7 +58,8 @@ class SrGuiStateSaver(Plugin):
         self._widget.information_box.clicked.connect(self.display_information)
         self._widget.button_save.clicked.connect(self._button_pressed)
 
-    def display_information(self, message):
+    @staticmethod
+    def display_information(message):
         message = "To save a state you must first be connected to the warehouse. " + \
                   "After launching the hand, click the green Connect button in the ‘Context’ tab " + \
                   "in the 'Motion Planning' tab of RViz.\n" + \
@@ -113,7 +112,7 @@ class SrGuiStateSaver(Plugin):
                 QMessageBox.information(self._widget, "State Save Successful!",
                                         "State '{}' saved for {} {}.\n\n".format(name, side, which) +
                                         "Joint names and angles: {}\n".format(joints))
-        except Exception as e:
+        except Exception as error:
             QMessageBox.warning(self._widget, "Could not save for %s." % which,
-                                "State saver failed: " + str(e))
+                                "State saver failed: " + str(error))
             return
