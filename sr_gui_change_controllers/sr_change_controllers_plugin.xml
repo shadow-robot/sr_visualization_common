@@ -21,7 +21,7 @@
         <label>Shadow Robot</label>
       </group>
       <label>Change Robot Control Mode</label>
-      <icon type="file">../sr_visualization_common_icons/icons/hand.png</icon>
+      <icon type="file">../sr_visualization_common_icons/icons/hand.ico</icon>
       <statustip>
         A plugin to switch between the different robot control types.
       </statustip>
