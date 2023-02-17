@@ -21,7 +21,7 @@
       <group>
         <label>Shadow Robot</label>
       </group>
-      <icon type="file">resource/hand.png</icon>
+      <icon type="file">resource/hand.ico</icon>
       <label>State Saver</label>
       <statustip>A plugin for saving the current robot state.</statustip>
     </qtgui>
