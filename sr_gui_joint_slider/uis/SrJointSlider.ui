@@ -155,7 +155,7 @@
           <item>
            <widget class="QLineEdit" name="robot_description_edit">
             <property name="text">
-             <string>robot_description</string>
+             <string>/robot_description</string>
             </property>
            </widget>
           </item>

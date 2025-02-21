@@ -39,7 +39,6 @@ from sr_gui_joint_slider.sliders import (JointController,
                                          EtherCATHandSlider,
                                          EtherCATHandTrajectorySlider,
                                          EtherCATSelectionSlider)
-from sr_utilities.hand_finder import HandFinder
 
 
 class SrGuiJointSlider(Plugin):
@@ -280,14 +279,7 @@ class SrGuiJointSlider(Plugin):
 
     def _get_joint_min_max_vel_special(self, jname):
         output = (None, None, None)
-        if "J0" in jname:
-            jname1 = jname.replace("J0", "J1")
-            jname2 = jname.replace("J0", "J2")
-            min1, max1, vel1 = self._get_joint_min_max_vel(jname1)
-            min2, max2, vel2 = self._get_joint_min_max_vel(jname2)
-            output = (min1 + min2, max1 + max2, vel1 + vel2)
-        else:
-            output = self._get_joint_min_max_vel(jname)
+        output = self._get_joint_min_max_vel(jname)
         return output
 
     def _create_joints(self, controllers):
@@ -344,13 +336,6 @@ class SrGuiJointSlider(Plugin):
                             # These joints are controlled by the trajectory controller
                             continue
 
-                        if "J0" in joint_name:  # xxJ0 are controlled by the by the trajectory controller xxJ1 and xxJ2
-                            jname1 = joint_name.replace("J0", "J1")
-                            jname2 = joint_name.replace("J0", "J2")
-                            if jname1 in trajectory_ctrl_joint_names \
-                                    and jname2 in trajectory_ctrl_joint_names:
-                                continue
-
                         joint_controller = JointController(
                             controller.name, controller_type, controller_state_type, controller_category)
                         rospy.loginfo(
@@ -390,15 +375,10 @@ class SrGuiJointSlider(Plugin):
 
     @staticmethod
     def get_hand_prefix():
-        hand_finder = HandFinder()
-        if hand_finder.hand_e_available():
-            hand_parameters = hand_finder.get_hand_parameters()
-            _, hand_prefix = list(hand_parameters.joint_prefix.items())[0]
-        elif hand_finder.hand_h_available():
-            hand_prefix, _ = list(hand_finder.get_hand_h_parameters().items())[0]
-            hand_prefix = hand_prefix + "_"
-        else:
-            hand_prefix = ""
+        # TODO: Look for hands in order to get their prefix and initialize the joint filter field
+        # It doesn't look necessary in the dexee context of running only one robot per namespace
+        # For the moment, we will just return an empty string (no filtering)
+        hand_prefix = ""
         return hand_prefix
 
     @staticmethod
